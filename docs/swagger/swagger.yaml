@@ -1,0 +1,199 @@
+basePath: /endpoint/v1
+definitions:
+  helpers.JoiError:
+    properties:
+      Code:
+        type: integer
+      Message:
+        type: error
+    type: object
+  helpers.JoiString:
+    properties:
+      Code:
+        type: integer
+      Message:
+        type: string
+    type: object
+  models.Pagination:
+    properties:
+      data:
+        type: object
+      items:
+        $ref: '#/definitions/models.PaginationItems'
+        type: object
+      pages:
+        $ref: '#/definitions/models.PaginationPages'
+        type: object
+    type: object
+  models.PaginationItems:
+    properties:
+      begin:
+        type: integer
+      end:
+        type: integer
+      limit:
+        type: integer
+      total:
+        type: integer
+    type: object
+  models.PaginationPages:
+    properties:
+      current:
+        type: integer
+      hasNext:
+        type: boolean
+      hasPrev:
+        type: boolean
+      next:
+        type: integer
+      prev:
+        type: integer
+      total:
+        type: integer
+    type: object
+  structs.Authorization:
+    properties:
+      authorization:
+        type: string
+    type: object
+host: localhost:3500
+info:
+  contact:
+    email: freshmanlimited@gmail.com
+    name: Amir Irani
+  description: A user system API starter.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: GoWithWith
+  version: "1.0"
+paths:
+  /user/auth/logout:
+    delete:
+      description: Delete current session or delete special session with id
+      parameters:
+      - description: Session ID
+        in: formData
+        name: id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helpers.JoiError'
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Logout user
+      tags:
+      - users
+  /user/auth/sessions:
+    get:
+      description: Get all user sessions
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: number
+      - description: Limit
+        in: query
+        name: limit
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helpers.JoiString'
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get user sessions
+      tags:
+      - users
+  /user/login:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Login and get jwt session
+      parameters:
+      - description: Username
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.Authorization'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helpers.JoiError'
+            type: object
+      summary: User login
+      tags:
+      - users
+  /user/signup:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create by multipart/form-data
+      parameters:
+      - description: Username
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helpers.JoiString'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helpers.JoiError'
+            type: object
+      summary: Create a account
+      tags:
+      - users
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
