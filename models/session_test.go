@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	db "../database"
+	"github.com/Gommunity/GoWithWith/database"
 	"github.com/joho/godotenv"
 	"github.com/zebresel-com/mongodm"
 )
@@ -14,26 +14,21 @@ var dbSession *mongodm.Model
 
 func sessionBeforeTest() {
 
-	// Load Environments
 	err := godotenv.Load("../.env")
 	if err != nil {
 		panic(":main:init: ErrorLoading.EnvFile")
 	}
 
-	// Database Models
 	Models := make(map[string]mongodm.IDocumentBase)
 	Models["session"] = &Session{}
 
-	// Setting up Database with Models
-	db.Initial(Models, true)
+	database.Initial(Models, true)
 
-	// Clean DB first
-	dbSession = db.Connection.Model("session")
+	dbSession = database.Connection.Model("session")
 	dbSession.RemoveAll(nil)
 }
 
 func sessionAfterTest() {
-	// Clean DB
 	dbSession.RemoveAll(nil)
 }
 
@@ -41,12 +36,11 @@ func TestSession(t *testing.T) {
 
 	sessionBeforeTest()
 
-	id, session, err := CreateSession("Irani", "::1", "userAgent")
+	id, session := CreateSession("Irani", "::1", "userAgent")
 
 	t.Run("CreateSession", func(t *testing.T) {
 		assert.IsType(t, String, id)
 		assert.IsType(t, String, session)
-		assert.Nil(t, err)
 	})
 
 	t.Run("SessionFindByID", func(t *testing.T) {
@@ -73,20 +67,14 @@ func TestSession(t *testing.T) {
 		assert.IsType(t, Pagination{}, sessions)
 	})
 
-	t.Run("DeleteSession", func(t *testing.T) {
-		err := DeleteSession(id)
-		err1 := DeleteSession("111111111111111111111111")
-		assert.Nil(t, err)
-		assert.Error(t, err1)
-	})
+	DeleteSession(id)
 
 	sessionAfterTest()
 }
 
 func TestCreateJWToken(t *testing.T) {
 
-	jwt, err := CreateJWToken("session", "SID", "Irani", "userID", []byte("Secret"))
+	jwt := CreateJWToken("session", "SID", "Irani", "userID", []byte("Secret"))
 
 	assert.IsType(t, String, jwt)
-	assert.Nil(t, err)
 }

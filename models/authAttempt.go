@@ -6,12 +6,11 @@ import (
 	"strings"
 	"time"
 
-	db "../database"
+	"github.com/Gommunity/GoWithWith/database"
 	"github.com/zebresel-com/mongodm"
 	"gopkg.in/mgo.v2/bson"
 )
 
-// AuthAttempt Model
 type AuthAttempt struct {
 	mongodm.DocumentBase `json:",inline" bson:",inline"`
 
@@ -19,21 +18,16 @@ type AuthAttempt struct {
 	Username string `json:"username" bson:"username"`
 }
 
-// AbuseDetected ...
 type AbuseDetected struct {
 	MaxIP            string
 	MaxIPAndUsername string
 }
 
-// Check attempts in login route
 func (Config *AbuseDetected) Check(ip, username string) error {
 
-	// Block spammer for one hour
 	lastHour := time.Now().Add(-1 * time.Hour)
+	getAuthAttempt := database.Connection.Model("AuthAttempt")
 
-	getAuthAttempt := db.Connection.Model("AuthAttempt")
-
-	// Check for IPs
 	numIP, _ := getAuthAttempt.Find(
 		bson.M{
 			"ip": ip,
@@ -42,8 +36,6 @@ func (Config *AbuseDetected) Check(ip, username string) error {
 			},
 		},
 	).Count()
-
-	// Check for UsernameAndIPs
 	numIPAndUsername, _ := getAuthAttempt.Find(
 		bson.M{
 			"ip":       ip,
@@ -67,11 +59,9 @@ func (Config *AbuseDetected) Check(ip, username string) error {
 	return nil
 }
 
-// AttemptCreate Create attempt from unsuccessful auth
 func AttemptCreate(ip, username string) error {
 
-	getAuthAttempt := db.Connection.Model("AuthAttempt")
-
+	getAuthAttempt := database.Connection.Model("AuthAttempt")
 	attempt := &AuthAttempt{}
 	getAuthAttempt.New(attempt)
 

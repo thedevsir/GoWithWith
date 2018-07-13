@@ -4,19 +4,16 @@ import (
 	"math"
 )
 
-// Global ...
 var (
 	String string
 )
 
 type (
-	// Pagination ...
 	Pagination struct {
 		Data  interface{}
 		Pages PaginationPages
 		Items PaginationItems
 	}
-	// PaginationPages ...
 	PaginationPages struct {
 		Current int
 		Prev    int
@@ -25,7 +22,6 @@ type (
 		HasNext bool
 		Total   int
 	}
-	// PaginationItems ...
 	PaginationItems struct {
 		Limit int
 		Begin int
@@ -34,7 +30,6 @@ type (
 	}
 )
 
-// GeneratePagination ...
 func GeneratePagination(data interface{}, count, page, limit int) Pagination {
 
 	totalPage := math.Ceil(float64(count) / float64(limit))

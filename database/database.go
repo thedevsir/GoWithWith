@@ -7,13 +7,11 @@ import (
 	"time"
 
 	"github.com/zebresel-com/mongodm"
-	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2"
 )
 
-// Connection Global
 var Connection *mongodm.Connection
 
-// Initial Setting up Database with Models
 func Initial(models map[string]mongodm.IDocumentBase, test bool) {
 
 	locals := "locals/locals.json"
@@ -27,7 +25,7 @@ func Initial(models map[string]mongodm.IDocumentBase, test bool) {
 	file, err := ioutil.ReadFile(locals)
 
 	if err != nil {
-		panic(":database:Initial: FileError:Locales.json")
+		panic(err)
 	}
 
 	var localMap map[string]map[string]string
@@ -48,7 +46,7 @@ func Initial(models map[string]mongodm.IDocumentBase, test bool) {
 	Connection, err = mongodm.Connect(dbConfig)
 
 	if err != nil {
-		panic(":database:Initial: DatabaseConnectionError")
+		panic(err)
 	}
 
 	for k, v := range models {

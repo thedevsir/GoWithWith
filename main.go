@@ -3,12 +3,12 @@ package main
 import (
 	"os"
 
-	db "./database"
-	_ "./docs"
-	mail "./gomail"
-	models "./models"
-	routes "./routes"
-	handlers "./routes/handlers"
+	"github.com/Gommunity/GoWithWith/database"
+	_ "github.com/Gommunity/GoWithWith/docs"
+	"github.com/Gommunity/GoWithWith/mail"
+	"github.com/Gommunity/GoWithWith/models"
+	"github.com/Gommunity/GoWithWith/routes"
+	"github.com/Gommunity/GoWithWith/routes/handlers"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -17,26 +17,20 @@ import (
 
 func init() {
 
-	// Load Environments
 	err := godotenv.Load()
 	if err != nil {
 		panic(":main:init: ErrorLoading.EnvFile")
 	}
 
-	// Init Config in Handlers
 	handlers.InitConfig()
-
-	// Init Mail Driver
 	mail.Initial()
 
-	// Database Models
-	Models := make(map[string]mongodm.IDocumentBase)
-	Models["authAttempts"] = &models.AuthAttempt{}
-	Models["sessions"] = &models.Session{}
-	Models["users"] = &models.User{}
-
-	// Setting up Database with Models
-	db.Initial(Models, false)
+	Models := map[string]mongodm.IDocumentBase{
+		"authAttempts": &models.AuthAttempt{},
+		"sessions":     &models.Session{},
+		"users":        &models.User{},
+	}
+	database.Initial(Models, false)
 }
 
 // @title GoWithWith
@@ -59,20 +53,10 @@ func init() {
 func main() {
 
 	Run := routes.Initial()
-
-	// Logger Middleware
 	Run.Use(middleware.Logger())
-
-	// Logger Middleware
 	Run.Use(middleware.Recover())
-
-	// Body Dump Middleware
-	// Run.Use(middleware.BodyDump(func(c echo.Context, reqBody, resBody []byte) {}))
-
-	// Body Limit Middleware
+	Run.Use(middleware.BodyDump(func(c echo.Context, reqBody, resBody []byte) {}))
 	Run.Use(middleware.BodyLimit("10K"))
-
-	// CORS Middleware
 	Run.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
@@ -84,14 +68,11 @@ func main() {
 	// 	Level: 5,
 	// }))
 
-	// Recover Middleware
 	// Run.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 	// 	StackSize: 1 << 10, // 1 KB
 	// }))
 
-	// HTTPS NonWWW Redirect
 	// Run.Pre(middleware.HTTPSNonWWWRedirect())
 
-	// Start Server
 	Run.Logger.Fatal(Run.Start(os.Getenv("PORT")))
 }

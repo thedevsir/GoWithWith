@@ -6,17 +6,15 @@ import (
 	"net/url"
 	"testing"
 
-	models "../../models"
+	"github.com/Gommunity/GoWithWith/models"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSignup(t *testing.T) {
 
-	// Form
 	form := make(url.Values)
 	form.Set("password", "12345")
 
-	// Mock
 	ModeliCheckUsername = func(t1 string) (models.User, error) {
 		return models.User{}, nil
 	}
@@ -26,16 +24,20 @@ func TestSignup(t *testing.T) {
 	ModeliCreateUser = func(t1, t2, t3 string) error {
 		return nil
 	}
+	ModeliMakeEmailToken = func(t1, t2, t3 string, t4 []byte) (string, error) {
+		return "", nil
+	}
+	ModeliSendVerficationMail = func(t1, t2, t3 string) error {
+		return nil
+	}
 
 	t.Run("Success", func(t *testing.T) {
 
 		form.Set("username", "irani")
 		form.Set("email", "freshmanlimited@gmail.com")
 
-		// Setup
 		c, rec := MakeReq("POST", form, true, "")
 
-		// Assertions
 		if assert.NoError(t, Signup(c)) {
 			assert.Equal(t, http.StatusOK, rec.Code)
 			var errJSON JoiString
@@ -49,10 +51,8 @@ func TestSignup(t *testing.T) {
 		form.Set("username", "ir") // min: 3
 		form.Set("email", "wrongEmail")
 
-		// Setup
 		c, rec := MakeReq("POST", form, true, "")
 
-		// Assertions
 		if assert.NoError(t, Signup(c)) {
 			var errJSON JoiError
 			json.Unmarshal([]byte(rec.Body.String()), &errJSON)

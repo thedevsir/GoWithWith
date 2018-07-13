@@ -10,14 +10,13 @@ import (
 	"strings"
 	"time"
 
-	mail "../../gomail"
-	models "../../models"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/Gommunity/GoWithWith/mail"
+	"github.com/Gommunity/GoWithWith/models"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
-	gomail "gopkg.in/gomail.v2"
+	"gopkg.in/gomail.v2"
 )
 
-// Global ...
 var (
 	ModeliCheckUsername         = models.CheckUsername
 	ModeliCheckEmail            = models.CheckEmail
@@ -31,31 +30,30 @@ var (
 	ModeliSessionFindByID       = models.SessionFindByID
 	ModeliGetUserSessions       = models.GetUserSessions
 	ModeliChangeUserPassword    = models.ChangeUserPassword
+	ModeliCheckEmailVerify      = models.CheckEmailVerify
 	ModeliMakeEmailToken        = MakeEmailToken
 	ModeliSendResetMail         = SendResetMail
+	ModeliSendVerficationMail   = SendVerficationMail
 	ModeliParseJWT              = ParseJWT
 )
 
-// JoiError ...
 type JoiError struct {
 	Code    int
 	Message map[string]string
 }
 
-// JoiString ...
 type JoiString struct {
 	Code    int
 	Message string
 }
 
-// EmailToken ...
 type EmailToken struct {
+	Action   string
 	Username string
 	Email    string
 	jwt.StandardClaims
 }
 
-// InitConfig ...
 func InitConfig() {
 	ModeliAbuseDetected = models.AbuseDetected{
 		MaxIP:            os.Getenv("AuthAttemptsForIp"),
@@ -63,13 +61,13 @@ func InitConfig() {
 	}
 }
 
-// MakeEmailToken ...
-func MakeEmailToken(username, email string, secret []byte) (string, error) {
+func MakeEmailToken(action, username, email string, secret []byte) string {
 
 	var token string
 	var err error
 
 	claims := EmailToken{
+		action,
 		username,
 		email,
 		jwt.StandardClaims{
@@ -78,26 +76,43 @@ func MakeEmailToken(username, email string, secret []byte) (string, error) {
 	}
 
 	tokenJWT := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
 	if token, err = tokenJWT.SignedString(secret); err != nil {
 		panic(err)
 	}
 
-	return token, nil
+	return token
 }
 
-// SendResetMail ...
-func SendResetMail(username, email, token string) error {
+func SendVerficationMail(username, email, token string) {
+
+	verifyBody := mail.Verify{
+		Username:     username,
+		EmailAddress: email,
+		Token:        token,
+	}
+	emailBody, emailText := mail.GenerateTemplate(verifyBody.Email())
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", os.Getenv("EmailFrom"))
+	m.SetHeader("To", verifyBody.EmailAddress)
+	m.SetHeader("Subject", "Confirm your account")
+	m.SetBody("text/plain", emailText)
+	m.AddAlternative("text/html", emailBody)
+
+	if err := mail.Driver.DialAndSend(m); err != nil {
+		panic(err)
+	}
+}
+
+func SendResetMail(username, email, token string) {
 
 	forgotBody := mail.Forgot{
 		Username:     username,
 		EmailAddress: email,
 		Token:        token,
 	}
-
 	emailBody, emailText := mail.GenerateTemplate(forgotBody.Email())
 
-	// Send mail
 	m := gomail.NewMessage()
 	m.SetHeader("From", os.Getenv("EmailFrom"))
 	m.SetHeader("To", forgotBody.EmailAddress)
@@ -105,15 +120,11 @@ func SendResetMail(username, email, token string) error {
 	m.SetBody("text/plain", emailText)
 	m.AddAlternative("text/html", emailBody)
 
-	// Send the email
 	if err := mail.Driver.DialAndSend(m); err != nil {
 		panic(err)
 	}
-
-	return nil
 }
 
-// MakeReq ...
 func MakeReq(method string, form url.Values, data bool, authorization string) (echo.Context, *httptest.ResponseRecorder) {
 
 	e := echo.New()
@@ -134,7 +145,6 @@ func MakeReq(method string, form url.Values, data bool, authorization string) (e
 	return c, rec
 }
 
-// ParseJWT ...
 func ParseJWT(token string, secret []byte) (*jwt.Token, error) {
 
 	var err error
@@ -154,11 +164,9 @@ func ParseJWT(token string, secret []byte) (*jwt.Token, error) {
 	return &jwt.Token{}, err
 }
 
-// PaginationSettings ...
 func PaginationSettings(c echo.Context) (int, int) {
 
 	var page, limit = 1, 10
-
 	queryPage := c.QueryParam("page")
 	queryLimit := c.QueryParam("limit")
 

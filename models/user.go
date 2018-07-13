@@ -4,41 +4,36 @@ import (
 	"errors"
 	"strings"
 
-	db "../database"
+	"github.com/Gommunity/GoWithWith/database"
 	"github.com/go-ozzo/ozzo-validation"
 	"github.com/zebresel-com/mongodm"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/mgo.v2/bson"
 )
 
-// User Model
 type User struct {
 	mongodm.DocumentBase `json:",inline" bson:",inline"`
 
-	Username string `json:"username" bson:"username"`
-	Password string `json:"password" bson:"password"`
-	Email    string `json:"email" bson:"email"`
+	Username    string `json:"username" bson:"username"`
+	Password    string `json:"password" bson:"password"`
+	Email       string `json:"email" bson:"email"`
+	VerifyEmail bool   `json:"verifyEmail" bson:"verifyEmail"`
 }
 
-// HashPassword with bcrypt
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
 }
 
-// CheckPasswordHash ...
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
 
-// FindUserByCredentials ...
 func FindUserByCredentials(username, password string) (User, error) {
 
-	getUser := db.Connection.Model("User")
-
+	getUser := database.Connection.Model("User")
 	user := &User{}
-
 	var findStruct bson.M
 
 	if strings.Index(username, "@") > -1 {
@@ -63,13 +58,10 @@ func FindUserByCredentials(username, password string) (User, error) {
 	return *user, nil
 }
 
-// ChangeUserPassword ...
-func ChangeUserPassword(username, password string) error {
+func ChangeUserPassword(username, password string) {
 
-	getUser := db.Connection.Model("User")
-
+	getUser := database.Connection.Model("User")
 	hash, _ := HashPassword(password)
-
 	update := bson.M{
 		"$set": bson.M{
 			"password": hash,
@@ -81,15 +73,11 @@ func ChangeUserPassword(username, password string) error {
 	if err != nil {
 		panic(err)
 	}
-
-	return nil
 }
 
-// CheckUsername ...
 func CheckUsername(username string) (User, error) {
 
-	getUser := db.Connection.Model("User")
-
+	getUser := database.Connection.Model("User")
 	user := &User{}
 	err := getUser.FindOne(bson.M{"username": strings.ToLower(username)}).Exec(user)
 
@@ -102,15 +90,11 @@ func CheckUsername(username string) (User, error) {
 		errs["username"] = errors.New("The username exist")
 		return *user, errs
 	}
-
-	return User{}, nil
 }
 
-// CheckEmail ...
 func CheckEmail(email string) (User, error) {
 
-	getUser := db.Connection.Model("User")
-
+	getUser := database.Connection.Model("User")
 	user := &User{}
 	err := getUser.FindOne(bson.M{"email": strings.ToLower(email)}).Exec(user)
 
@@ -123,29 +107,38 @@ func CheckEmail(email string) (User, error) {
 		errs["email"] = errors.New("The email exist")
 		return *user, errs
 	}
-
-	return User{}, nil
 }
 
-// CreateUser ...
-func CreateUser(username, password, email string) error {
+func CheckEmailVerify(email string) (User, error) {
 
-	getUser := db.Connection.Model("User")
+	getUser := database.Connection.Model("User")
+	user := &User{}
+	err := getUser.FindOne(bson.M{"email": strings.ToLower(email), "verifyEmail": false}).Exec(user)
 
+	if err, ok := err.(*mongodm.NotFoundError); ok {
+		return User{}, err
+	} else if err != nil {
+		panic(err)
+	} else {
+		return User{}, nil
+	}
+}
+
+func CreateUser(username, password, email string) {
+
+	getUser := database.Connection.Model("User")
 	user := &User{}
 	getUser.New(user)
-
 	hash, _ := HashPassword(password)
 
 	user.Username = strings.ToLower(username)
 	user.Password = hash
 	user.Email = strings.ToLower(email)
+	user.VerifyEmail = false
 
 	err := user.Save()
 
 	if err != nil {
 		panic(err)
 	}
-
-	return nil
 }

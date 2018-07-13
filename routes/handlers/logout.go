@@ -3,12 +3,22 @@ package handlers
 import (
 	"net/http"
 
-	helpers "../../helpers"
-	models "../../models"
-	structs "../structs"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/Gommunity/GoWithWith/helpers"
+	"github.com/Gommunity/GoWithWith/models"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/go-ozzo/ozzo-validation"
 	"github.com/labstack/echo"
 )
+
+type LogoutStruct struct {
+	ID string `form:"id"`
+}
+
+func (l LogoutStruct) Joi() error {
+	return validation.ValidateStruct(&l,
+		validation.Field(&l.ID, validation.Required),
+	)
+}
 
 // Logout godoc
 // @Summary Logout user
@@ -29,24 +39,22 @@ func Logout(c echo.Context) error {
 	UserID := claims["userId"].(string)
 	SID := claims["sid"].(string)
 
-	Logout := structs.LogoutStruct{
+	params := LogoutStruct{
 		ID: c.FormValue("id"),
 	}
 
-	err := Logout.Joi()
+	err := params.Joi()
 
 	if err == nil {
-		if session, err = ModeliSessionFindByID(Logout.ID); err != nil {
+		if session, err = ModeliSessionFindByID(params.ID); err != nil {
 			return c.JSON(http.StatusBadRequest, helpers.ThrowString(err))
 		}
 		if session.UserID == UserID {
-			SID = Logout.ID
+			SID = params.ID
 		}
 	}
 
-	if err = ModeliDeleteSession(SID); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.ThrowString(err))
-	}
+	ModeliDeleteSession(SID)
 
 	return c.JSON(http.StatusOK, helpers.SayOk("Success."))
 }

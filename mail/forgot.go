@@ -1,4 +1,4 @@
-package gomail
+package mail
 
 import (
 	"fmt"
@@ -7,19 +7,16 @@ import (
 	"github.com/matcornic/hermes"
 )
 
-// Forgot ...
 type Forgot struct {
 	Username     string
 	EmailAddress string
 	Token        string
 }
 
-// Name ...
 func (r *Forgot) Name() string {
-	return "reset"
+	return "forgot"
 }
 
-// Email ...
 func (r *Forgot) Email() hermes.Email {
 	return hermes.Email{
 		Body: hermes.Body{

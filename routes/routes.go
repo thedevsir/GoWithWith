@@ -3,14 +3,13 @@ package routes
 import (
 	"os"
 
-	auth "../auth"
-	handler "./handlers"
+	"github.com/Gommunity/GoWithWith/auth"
+	"github.com/Gommunity/GoWithWith/routes/handlers"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/swaggo/echo-swagger"
 )
 
-// Initial ...
 func Initial() *echo.Echo {
 
 	Route := echo.New()
@@ -19,16 +18,17 @@ func Initial() *echo.Echo {
 	{
 		User := endpointV1.Group("/user")
 		{
-			User.POST("/signup", handler.Signup)
-			User.POST("/login", handler.Login)
-			User.POST("/forgot", handler.Forgot)
-			User.POST("/reset", handler.Reset)
+			User.POST("/signup", handlers.Signup)
+			User.POST("/signup/resend-email", handlers.ResendEmail)
+			User.POST("/login", handlers.Login)
+			User.POST("/login/forgot", handlers.Forgot)
+			User.POST("/login/reset", handlers.Reset)
 			{
 				Auth := User.Group("/auth")
 				Auth.Use(middleware.JWT([]byte(os.Getenv("JWTSigningKey"))))
 				Auth.Use(auth.AuthMiddleware)
-				Auth.GET("/sessions", handler.Sessions)
-				Auth.DELETE("/logout", handler.Logout)
+				Auth.GET("/sessions", handlers.Sessions)
+				Auth.DELETE("/logout", handlers.Logout)
 			}
 		}
 	}

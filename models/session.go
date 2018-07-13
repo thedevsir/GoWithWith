@@ -4,15 +4,14 @@ import (
 	"errors"
 	"time"
 
-	db "../database"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/Gommunity/GoWithWith/database"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/satori/go.uuid"
 	"github.com/zebresel-com/mongodm"
 	"gopkg.in/mgo.v2/bson"
 )
 
 type (
-	// Session Model
 	Session struct {
 		mongodm.DocumentBase `json:",inline" bson:",inline"`
 
@@ -21,12 +20,10 @@ type (
 		UserID    string `json:"userId" bson:"userId"`
 		UserAgent string `json:"userAgent" bson:"userAgent"`
 	}
-	// JWTUserEmbed for CreateJWToken func
 	JWTUserEmbed struct {
 		ID       string `json:"userId"`
 		Username string `json:"username"`
 	}
-	// JWTClaims for CreateJWToken func
 	JWTClaims struct {
 		Session string `json:"session"`
 		SID     string `json:"sid"`
@@ -35,16 +32,12 @@ type (
 	}
 )
 
-// GetUserSessions ...
 func GetUserSessions(userID string, page, limit int) (Pagination, error) {
 
-	getModel := db.Connection.Model("Session")
-
+	getModel := database.Connection.Model("Session")
 	sessions := []*Session{}
-
 	dbResult := getModel.Find(bson.M{"userId": userID}).Select(bson.M{"key": 0, "userId": 0}).Sort("updatedAt").
 		Skip((page - 1) * limit).Limit(limit)
-
 	count, _ := dbResult.Count()
 	err := dbResult.Exec(&sessions)
 
@@ -59,15 +52,12 @@ func GetUserSessions(userID string, page, limit int) (Pagination, error) {
 	return pagination, nil
 }
 
-// CreateSession ...
-func CreateSession(userID, ip, userAgent string) (string, string, error) {
+func CreateSession(userID, ip, userAgent string) (string, string) {
 
-	getSession := db.Connection.Model("Session")
-
+	getSession := database.Connection.Model("Session")
 	session := &Session{}
 	getSession.New(session)
-
-	sess := uuid.Must(uuid.NewV4()).String()
+	sess := uuid.Must(uuid.NewV4(), nil).String() // nil
 	hash, _ := HashPassword(sess)
 
 	session.IP = ip
@@ -76,19 +66,16 @@ func CreateSession(userID, ip, userAgent string) (string, string, error) {
 	session.UserAgent = userAgent
 
 	err := session.Save()
-
 	if err != nil {
 		panic(err)
 	}
 
-	return session.GetId().Hex(), sess, nil
+	return session.GetId().Hex(), sess
 }
 
-// UpdateLastActive ...
 func UpdateLastActive(SID string) error {
 
-	getSession := db.Connection.Model("Session")
-
+	getSession := database.Connection.Model("Session")
 	update := bson.M{
 		"$set": bson.M{
 			"updatedAt": time.Now(),
@@ -96,7 +83,6 @@ func UpdateLastActive(SID string) error {
 	}
 
 	err := getSession.UpdateId(bson.ObjectIdHex(SID), update)
-
 	if err != nil {
 		panic(err)
 	}
@@ -104,7 +90,6 @@ func UpdateLastActive(SID string) error {
 	return nil
 }
 
-// SessionFindByCredentials ...
 func SessionFindByCredentials(sess, SID string) error {
 
 	session, err := SessionFindByID(SID)
@@ -121,15 +106,12 @@ func SessionFindByCredentials(sess, SID string) error {
 	return nil
 }
 
-// SessionFindByID ...
 func SessionFindByID(SID string) (Session, error) {
 
-	getSession := db.Connection.Model("Session")
-
+	getSession := database.Connection.Model("Session")
 	session := &Session{}
 
 	err := getSession.FindId(bson.ObjectIdHex(SID)).Exec(session)
-
 	if _, ok := err.(*mongodm.NotFoundError); ok {
 		return Session{}, errors.New("Session not found")
 	} else if err != nil {
@@ -139,8 +121,7 @@ func SessionFindByID(SID string) (Session, error) {
 	return *session, nil
 }
 
-// CreateJWToken ...
-func CreateJWToken(session, SID, username, userID string, signingKey []byte) (string, error) {
+func CreateJWToken(session, SID, username, userID string, signingKey []byte) string {
 
 	var SignedToken string
 	var err error
@@ -156,25 +137,19 @@ func CreateJWToken(session, SID, username, userID string, signingKey []byte) (st
 	}
 
 	tokenJWT := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
 	if SignedToken, err = tokenJWT.SignedString(signingKey); err != nil {
 		panic(err)
 	}
 
 	SignedToken = "Bearer " + SignedToken
-
-	return SignedToken, nil
+	return SignedToken
 }
 
-// DeleteSession ...
-func DeleteSession(id string) error {
+func DeleteSession(id string) {
 
-	getSession := db.Connection.Model("Session")
+	getSession := database.Connection.Model("Session")
 	err := getSession.RemoveId(bson.ObjectIdHex(id))
-
 	if err != nil {
 		panic(err)
 	}
-
-	return nil
 }

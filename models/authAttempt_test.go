@@ -3,7 +3,7 @@ package models
 import (
 	"testing"
 
-	db "../database"
+	"github.com/Gommunity/GoWithWith/database"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/zebresel-com/mongodm"
@@ -13,26 +13,21 @@ var dbAuthAttempt *mongodm.Model
 
 func authAttemptBeforeTest() {
 
-	// Load Environments
 	err := godotenv.Load("../.env")
 	if err != nil {
 		panic(":main:init: ErrorLoading.EnvFile")
 	}
 
-	// Database Models
 	Models := make(map[string]mongodm.IDocumentBase)
 	Models["authAttempts"] = &AuthAttempt{}
 
-	// Setting up Database with Models
-	db.Initial(Models, true)
+	database.Initial(Models, true)
 
-	// Clean DB first
-	dbAuthAttempt = db.Connection.Model("AuthAttempt")
+	dbAuthAttempt = database.Connection.Model("AuthAttempt")
 	dbAuthAttempt.RemoveAll(nil)
 }
 
 func authAttemptAfterTest() {
-	// Clean Db
 	dbAuthAttempt.RemoveAll(nil)
 }
 
@@ -61,6 +56,5 @@ func TestAuthAttempt(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	// Clean Db after test
 	authAttemptAfterTest()
 }

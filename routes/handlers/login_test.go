@@ -7,20 +7,17 @@ import (
 	"net/url"
 	"testing"
 
-	models "../../models"
-	structs "../structs"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/Gommunity/GoWithWith/models"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLogin(t *testing.T) {
 
-	// From
 	form := make(url.Values)
 	form.Set("username", "irani")
 	form.Set("password", "12345")
 
-	// Mock
 	ModeliAbuseDetected = models.AbuseDetected{
 		MaxIP:            "0",
 		MaxIPAndUsername: "0",
@@ -38,12 +35,10 @@ func TestLogin(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 
-		// Setup
 		c, rec := MakeReq("POST", form, true, "")
 
-		// Assertions
 		if assert.NoError(t, Login(c)) {
-			var res structs.Authorization
+			var res Authorization
 			json.Unmarshal([]byte(rec.Body.String()), &res)
 			assert.NotNil(t, res.Authorization)
 			assert.Equal(t, http.StatusOK, rec.Code)
@@ -54,10 +49,8 @@ func TestLogin(t *testing.T) {
 
 		form.Set("password", "")
 
-		// Setup
 		c, rec := MakeReq("POST", form, true, "")
 
-		// Assertions
 		if assert.NoError(t, Login(c)) {
 			var errJSON JoiError
 			json.Unmarshal([]byte(rec.Body.String()), &errJSON)
@@ -69,15 +62,13 @@ func TestLogin(t *testing.T) {
 
 func TestForgot(t *testing.T) {
 
-	// From
 	form := make(url.Values)
 	form.Set("email", "p30search@gmail.com")
 
-	// Mock
 	ModeliCheckEmail = func(t1 string) (models.User, error) {
 		return models.User{}, errors.New("")
 	}
-	ModeliMakeEmailToken = func(t1, t2 string, t3 []byte) (string, error) {
+	ModeliMakeEmailToken = func(t1, t2, t3 string, t4 []byte) (string, error) {
 		return "", nil
 	}
 	ModeliSendResetMail = func(t1, t2, t3 string) error {
@@ -86,10 +77,8 @@ func TestForgot(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 
-		// Setup
 		c, rec := MakeReq("POST", form, true, "")
 
-		// Assertions
 		if assert.NoError(t, Forgot(c)) {
 			assert.Equal(t, http.StatusOK, rec.Code)
 			var errJSON JoiString
@@ -101,14 +90,12 @@ func TestForgot(t *testing.T) {
 
 func TestReset(t *testing.T) {
 
-	token, _ := ModeliMakeEmailToken("username", "email", []byte("secret"))
+	token, _ := ModeliMakeEmailToken("reset", "username", "email", []byte("secret"))
 
-	// From
 	form := make(url.Values)
 	form.Set("token", "fakeToken")
 	form.Set("password", "blahblahblah")
 
-	// Mock
 	ModeliParseJWT = func(t1 string, t2 []byte) (*jwt.Token, error) {
 		return ParseJWT(token, []byte("secret"))
 	}
@@ -118,10 +105,8 @@ func TestReset(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 
-		// Setup
 		c, rec := MakeReq("POST", form, true, "")
 
-		// Assertions
 		if assert.NoError(t, Reset(c)) {
 			assert.Equal(t, http.StatusOK, rec.Code)
 			var errJSON JoiString

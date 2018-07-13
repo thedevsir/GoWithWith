@@ -3,7 +3,7 @@ package models
 import (
 	"testing"
 
-	db "../database"
+	"github.com/Gommunity/GoWithWith/database"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/zebresel-com/mongodm"
@@ -13,26 +13,21 @@ var dbUser *mongodm.Model
 
 func userBeforeTest() {
 
-	// Load Environments
 	err := godotenv.Load("../.env")
 	if err != nil {
 		panic(":main:init: ErrorLoading.EnvFile")
 	}
 
-	// Database Models
 	Models := make(map[string]mongodm.IDocumentBase)
 	Models["user"] = &User{}
 
-	// Setting up Database with Models
-	db.Initial(Models, true)
+	database.Initial(Models, true)
 
-	// Clean DB first
-	dbUser = db.Connection.Model("user")
+	dbUser = database.Connection.Model("user")
 	dbUser.RemoveAll(nil)
 }
 
 func userAfterTest() {
-	// Clean DB
 	dbUser.RemoveAll(nil)
 }
 
@@ -65,10 +60,7 @@ func TestUser(t *testing.T) {
 		Email:    "freshmanlimited@gmail.com",
 	}
 
-	t.Run("CreateUser", func(t *testing.T) {
-		err := CreateUser(person.Username, person.Password, person.Email)
-		assert.Nil(t, err)
-	})
+	CreateUser(person.Username, person.Password, person.Email)
 
 	t.Run("CheckEmail", func(t *testing.T) {
 		ce, err := CheckEmail(person.Email)
@@ -78,6 +70,13 @@ func TestUser(t *testing.T) {
 		assert.IsType(t, User{}, ce1)
 		assert.Nil(t, err1)
 	})
+
+	// t.Run("CheckEmailVerify", func(t *testing.T) {
+	// 	_, err := CheckEmailVerify(person.Email)
+	// 	_, err1 := CheckEmail("fake@aaservice.domain")
+	// 	assert.Error(t, err1)
+	// 	assert.Nil(t, err)
+	// })
 
 	t.Run("CheckUsername", func(t *testing.T) {
 		cu, err := CheckUsername(person.Username)
@@ -97,10 +96,7 @@ func TestUser(t *testing.T) {
 		assert.Error(t, err1)
 	})
 
-	t.Run("ChangeUserPassword", func(t *testing.T) {
-		err := ChangeUserPassword(person.Username, "newPassword")
-		assert.Nil(t, err)
-	})
+	ChangeUserPassword(person.Username, "newPassword")
 
 	userAfterTest()
 }

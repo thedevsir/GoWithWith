@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	helpers "../../helpers"
-	models "../../models"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/Gommunity/GoWithWith/helpers"
+	"github.com/Gommunity/GoWithWith/models"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 )
 
