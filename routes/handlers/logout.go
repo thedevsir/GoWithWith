@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"net/http"
-
-	"github.com/Gommunity/GoWithWith/helpers"
+	"github.com/Gommunity/GoWithWith/helpers/response"
 	"github.com/Gommunity/GoWithWith/models"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-ozzo/ozzo-validation"
@@ -47,7 +45,7 @@ func Logout(c echo.Context) error {
 
 	if err == nil {
 		if session, err = ModeliSessionFindByID(params.ID); err != nil {
-			return c.JSON(http.StatusBadRequest, helpers.ThrowString(err))
+			return response.Error(err.Error(), 1006)
 		}
 		if session.UserID == UserID {
 			SID = params.ID
@@ -56,5 +54,5 @@ func Logout(c echo.Context) error {
 
 	ModeliDeleteSession(SID)
 
-	return c.JSON(http.StatusOK, helpers.SayOk("Success."))
+	return response.Ok(c, "Successfully Signout")
 }

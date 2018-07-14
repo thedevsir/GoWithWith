@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"net/http"
-
-	"github.com/Gommunity/GoWithWith/helpers"
+	"github.com/Gommunity/GoWithWith/helpers/response"
 	"github.com/Gommunity/GoWithWith/models"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
@@ -32,8 +30,7 @@ func Sessions(c echo.Context) error {
 	page, limit := PaginationSettings(c)
 
 	if sessions, err = ModeliGetUserSessions(UserID, page, limit); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.ThrowString(err))
+		return response.Error(err.Error(), 1005)
 	}
-
-	return c.JSON(http.StatusOK, sessions)
+	return response.Data(c, sessions)
 }

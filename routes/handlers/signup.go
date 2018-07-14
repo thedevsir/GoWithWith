@@ -1,10 +1,9 @@
 package handlers
 
 import (
-	"net/http"
 	"os"
 
-	"github.com/Gommunity/GoWithWith/helpers"
+	"github.com/Gommunity/GoWithWith/helpers/response"
 	"github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/labstack/echo"
@@ -45,15 +44,15 @@ func Signup(c echo.Context) (err error) {
 	}
 
 	if err = params.Joi(); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.Throw(err))
+		return response.Error(err.Error(), 1001)
 	}
 
 	if _, err = ModeliCheckUsername(params.Username); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.Throw(err))
+		return response.Error(err.Error(), 1002)
 	}
 
 	if _, err = ModeliCheckEmail(params.Email); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.Throw(err))
+		return response.Error(err.Error(), 1003)
 	}
 
 	ModeliCreateUser(params.Username, params.Password, params.Email)
@@ -61,7 +60,7 @@ func Signup(c echo.Context) (err error) {
 	token := ModeliMakeEmailToken("verify", params.Username, params.Email, []byte(os.Getenv("JWTSigningKey")))
 	ModeliSendVerficationMail(params.Username, params.Email, token)
 
-	return c.JSON(http.StatusOK, helpers.SayOk("Success."))
+	return response.Created(c, "Created Successfully")
 }
 
 type ResendEmailStruct struct {
@@ -91,12 +90,12 @@ func ResendEmail(c echo.Context) (err error) {
 	}
 
 	if err = params.Joi(); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.Throw(err))
+		return response.Error(err.Error(), 1001)
 	}
 
 	if _, err = ModeliCheckEmailVerify(params.Email); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.ThrowString(err))
+		return response.Error(err.Error(), 1004)
 	}
 
-	return c.JSON(http.StatusOK, helpers.SayOk("Success."))
+	return response.Ok(c, "Success")
 }

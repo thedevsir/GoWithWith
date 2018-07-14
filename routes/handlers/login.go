@@ -1,15 +1,13 @@
 package handlers
 
 import (
-	"errors"
-	"net/http"
 	"os"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 
-	"github.com/Gommunity/GoWithWith/helpers"
+	"github.com/Gommunity/GoWithWith/helpers/response"
 	"github.com/Gommunity/GoWithWith/models"
 	"github.com/labstack/echo"
 )
@@ -55,16 +53,16 @@ func Login(c echo.Context) (err error) {
 	}
 
 	if err = params.Joi(); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.Throw(err))
+		return response.Error(err.Error(), 1001)
 	}
 
 	if err = ModeliAbuseDetectedCheck(ip, params.Username); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.ThrowString(err))
+		return response.Error(err.Error(), 1007)
 	}
 
 	if user, err = ModeliFindUserByCredentials(params.Username, params.Password); err != nil {
 		models.AttemptCreate(ip, params.Username)
-		return c.JSON(http.StatusBadRequest, helpers.ThrowString(err))
+		return response.Error(err.Error(), 1008)
 	}
 
 	userID = user.GetId().Hex()
@@ -76,8 +74,7 @@ func Login(c echo.Context) (err error) {
 	auth := &Authorization{
 		Authorization: tokenJWT,
 	}
-
-	return c.JSON(http.StatusOK, auth)
+	return response.Data(c, auth)
 }
 
 type ForgotStruct struct {
@@ -110,7 +107,7 @@ func Forgot(c echo.Context) (err error) {
 	}
 
 	if err = params.Joi(); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.Throw(err))
+		return response.Error(err.Error(), 1001)
 	}
 
 	if user, err = ModeliCheckEmail(params.Email); err != nil {
@@ -119,10 +116,9 @@ func Forgot(c echo.Context) (err error) {
 
 		ModeliSendResetMail(user.Username, user.Email, token)
 
-		return c.JSON(http.StatusOK, helpers.SayOk("Success."))
+		return response.Ok(c, "Success")
 	}
-
-	return c.JSON(http.StatusOK, helpers.ThrowString(errors.New("Email not found")))
+	return response.Error("Email not found", 1009)
 }
 
 type ResetStruct struct {
@@ -158,20 +154,20 @@ func Reset(c echo.Context) (err error) {
 	}
 
 	if err = params.Joi(); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.Throw(err))
+		return response.Error(err.Error(), 1001)
 	}
 
 	if data, err = ModeliParseJWT(params.Token, []byte(os.Getenv("JWTSigningKey"))); err != nil {
-		return c.JSON(http.StatusBadRequest, helpers.ThrowString(err))
+		return response.Error(err.Error(), 1010)
 	}
 
 	claims := data.Claims.(jwt.MapClaims)
 
 	if claims["Action"].(string) != "reset" {
-		return c.JSON(http.StatusBadRequest, helpers.ThrowString(errors.New("wrong action type")))
+		return response.Error("wrong action type", 1011)
 	}
 
 	ModeliChangeUserPassword(claims["Username"].(string), params.Password)
 
-	return c.JSON(http.StatusOK, helpers.SayOk("Success."))
+	return response.Ok(c, "Success")
 }
