@@ -11,7 +11,7 @@ import (
 )
 
 type LogoutStruct struct {
-	ID string `form:"id"`
+	ID string `json:"id"`
 }
 
 func (l LogoutStruct) Joi() error {

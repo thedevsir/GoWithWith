@@ -15,8 +15,8 @@ import (
 )
 
 type LoginStruct struct {
-	Username string `form:"username"`
-	Password string `form:"password"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type Authorization struct {
@@ -81,7 +81,7 @@ func Login(c echo.Context) (err error) {
 }
 
 type ForgotStruct struct {
-	Email string `form:"email"`
+	Email string `json:"email"`
 }
 
 func (f ForgotStruct) Joi() error {
@@ -126,8 +126,8 @@ func Forgot(c echo.Context) (err error) {
 }
 
 type ResetStruct struct {
-	Token    string `form:"token"`
-	Password string `form:"password"`
+	Token    string `json:"token"`
+	Password string `json:"password"`
 }
 
 func (r ResetStruct) Joi() error {

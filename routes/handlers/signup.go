@@ -11,9 +11,9 @@ import (
 )
 
 type SignupStruct struct {
-	Username string `form:"username"`
-	Password string `form:"password"`
-	Email    string `form:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }
 
 func (s SignupStruct) Joi() error {
@@ -65,7 +65,7 @@ func Signup(c echo.Context) (err error) {
 }
 
 type ResendEmailStruct struct {
-	Email string `form:"email"`
+	Email string `json:"email"`
 }
 
 func (r ResendEmailStruct) Joi() error {
