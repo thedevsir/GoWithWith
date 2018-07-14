@@ -4,18 +4,11 @@ import (
 	"github.com/Gommunity/GoWithWith/helpers/response"
 	"github.com/Gommunity/GoWithWith/models"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/go-ozzo/ozzo-validation"
 	"github.com/labstack/echo"
 )
 
 type LogoutStruct struct {
-	ID string `json:"id"`
-}
-
-func (l LogoutStruct) Joi() error {
-	return validation.ValidateStruct(&l,
-		validation.Field(&l.ID, validation.Required),
-	)
+	ID string `json:"id" validate:"required"`
 }
 
 // Logout godoc
@@ -37,13 +30,13 @@ func Logout(c echo.Context) error {
 	UserID := claims["userId"].(string)
 	SID := claims["sid"].(string)
 
-	params := LogoutStruct{
-		ID: c.FormValue("id"),
+	params := new(LogoutStruct)
+
+	if err := c.Bind(params); err != nil {
+		return response.Error(err.Error(), 1000)
 	}
 
-	err := params.Joi()
-
-	if err == nil {
+	if err := c.Validate(params); err == nil {
 		if session, err = ModeliSessionFindByID(params.ID); err != nil {
 			return response.Error(err.Error(), 1006)
 		}

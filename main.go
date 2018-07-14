@@ -5,6 +5,7 @@ import (
 
 	"github.com/Gommunity/GoWithWith/database"
 	_ "github.com/Gommunity/GoWithWith/docs"
+	"github.com/Gommunity/GoWithWith/helpers/validation"
 	"github.com/Gommunity/GoWithWith/mail"
 	"github.com/Gommunity/GoWithWith/models"
 	"github.com/Gommunity/GoWithWith/routes"
@@ -13,6 +14,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/zebresel-com/mongodm"
+	validator "gopkg.in/go-playground/validator.v9"
 )
 
 func init() {
@@ -61,6 +63,8 @@ func main() {
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
+
+	Run.Validator = &validation.DataValidator{ValidatorData: validator.New()}
 
 	// Gzip Middleware
 	// has conflict with swagger

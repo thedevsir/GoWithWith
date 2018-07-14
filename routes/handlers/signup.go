@@ -4,23 +4,17 @@ import (
 	"os"
 
 	"github.com/Gommunity/GoWithWith/helpers/response"
-	"github.com/go-ozzo/ozzo-validation"
-	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/labstack/echo"
 )
 
 type SignupStruct struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Email    string `json:"email"`
+	Username string `json:"username" validate:"required,min=3,max=50,alphanum"`
+	Password string `json:"password validate:"required,min=3,max=50"`
+	Email    string `json:"email" validate:"required,email"`
 }
 
-func (s SignupStruct) Joi() error {
-	return validation.ValidateStruct(&s,
-		validation.Field(&s.Username, validation.Required, validation.Length(3, 50), is.Alphanumeric),
-		validation.Field(&s.Password, validation.Required, validation.Length(3, 50)),
-		validation.Field(&s.Email, validation.Required, is.Email),
-	)
+type ResendEmailStruct struct {
+	Email string `json:"email" validate:"required,email"`
 }
 
 // Signup godoc
@@ -37,13 +31,13 @@ func (s SignupStruct) Joi() error {
 // @Router /user/signup [post]
 func Signup(c echo.Context) (err error) {
 
-	params := SignupStruct{
-		Username: c.FormValue("username"),
-		Password: c.FormValue("password"),
-		Email:    c.FormValue("email"),
+	params := new(SignupStruct)
+
+	if err := c.Bind(params); err != nil {
+		return response.Error(err.Error(), 1000)
 	}
 
-	if err = params.Joi(); err != nil {
+	if err := c.Validate(params); err != nil {
 		return response.Error(err.Error(), 1001)
 	}
 
@@ -63,16 +57,6 @@ func Signup(c echo.Context) (err error) {
 	return response.Created(c, "Created Successfully")
 }
 
-type ResendEmailStruct struct {
-	Email string `json:"email"`
-}
-
-func (r ResendEmailStruct) Joi() error {
-	return validation.ValidateStruct(&r,
-		validation.Field(&r.Email, validation.Required, is.Email),
-	)
-}
-
 // ResendEmail godoc
 // @Summary Resend verfication email
 // @Description Create by multipart/form-data
@@ -85,11 +69,13 @@ func (r ResendEmailStruct) Joi() error {
 // @Router /user/signup/resend-email [post]
 func ResendEmail(c echo.Context) (err error) {
 
-	params := ResendEmailStruct{
-		Email: c.FormValue("email"),
+	params := new(ResendEmailStruct)
+
+	if err := c.Bind(params); err != nil {
+		return response.Error(err.Error(), 1000)
 	}
 
-	if err = params.Joi(); err != nil {
+	if err := c.Validate(params); err != nil {
 		return response.Error(err.Error(), 1001)
 	}
 

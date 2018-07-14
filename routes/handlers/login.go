@@ -4,8 +4,6 @@ import (
 	"os"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/go-ozzo/ozzo-validation"
-	"github.com/go-ozzo/ozzo-validation/is"
 
 	"github.com/Gommunity/GoWithWith/helpers/response"
 	"github.com/Gommunity/GoWithWith/models"
@@ -13,19 +11,21 @@ import (
 )
 
 type LoginStruct struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type Authorization struct {
 	Authorization string `json:"authorization"`
 }
 
-func (l LoginStruct) Joi() error {
-	return validation.ValidateStruct(&l,
-		validation.Field(&l.Username, validation.Required),
-		validation.Field(&l.Password, validation.Required),
-	)
+type ForgotStruct struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+type ResetStruct struct {
+	Token    string `json:"token" validate:"required"`
+	Password string `json:"password" validate:"required,min=3,max=50"`
 }
 
 // Login godoc
@@ -47,12 +47,13 @@ func Login(c echo.Context) (err error) {
 	ip := c.RealIP()
 	userAgent := c.Request().Header.Get("User-Agent")
 
-	params := LoginStruct{
-		Username: c.FormValue("username"),
-		Password: c.FormValue("password"),
+	params := new(LoginStruct)
+
+	if err := c.Bind(params); err != nil {
+		return response.Error(err.Error(), 1000)
 	}
 
-	if err = params.Joi(); err != nil {
+	if err := c.Validate(params); err != nil {
 		return response.Error(err.Error(), 1001)
 	}
 
@@ -77,16 +78,6 @@ func Login(c echo.Context) (err error) {
 	return response.Data(c, auth)
 }
 
-type ForgotStruct struct {
-	Email string `json:"email"`
-}
-
-func (f ForgotStruct) Joi() error {
-	return validation.ValidateStruct(&f,
-		validation.Field(&f.Email, validation.Required, is.Email),
-	)
-}
-
 // Forgot godoc
 // @Summary Forgot password
 // @Description Request for reset password
@@ -102,11 +93,13 @@ func Forgot(c echo.Context) (err error) {
 	var token string
 	var user models.User
 
-	params := ForgotStruct{
-		Email: c.FormValue("email"),
+	params := new(ForgotStruct)
+
+	if err := c.Bind(params); err != nil {
+		return response.Error(err.Error(), 1000)
 	}
 
-	if err = params.Joi(); err != nil {
+	if err := c.Validate(params); err != nil {
 		return response.Error(err.Error(), 1001)
 	}
 
@@ -119,18 +112,6 @@ func Forgot(c echo.Context) (err error) {
 		return response.Ok(c, "Success")
 	}
 	return response.Error("Email not found", 1009)
-}
-
-type ResetStruct struct {
-	Token    string `json:"token"`
-	Password string `json:"password"`
-}
-
-func (r ResetStruct) Joi() error {
-	return validation.ValidateStruct(&r,
-		validation.Field(&r.Token, validation.Required),
-		validation.Field(&r.Password, validation.Required, validation.Length(3, 50)),
-	)
 }
 
 // Reset godoc
@@ -148,12 +129,13 @@ func Reset(c echo.Context) (err error) {
 
 	var data *jwt.Token
 
-	params := ResetStruct{
-		Token:    c.FormValue("token"),
-		Password: c.FormValue("password"),
+	params := new(ResetStruct)
+
+	if err := c.Bind(params); err != nil {
+		return response.Error(err.Error(), 1000)
 	}
 
-	if err = params.Joi(); err != nil {
+	if err := c.Validate(params); err != nil {
 		return response.Error(err.Error(), 1001)
 	}
 

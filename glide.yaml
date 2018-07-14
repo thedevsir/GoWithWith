@@ -29,6 +29,8 @@ import:
 - package: gopkg.in/mgo.v2
   subpackages:
   - bson
+- package: gopkg.in/go-playground/validator.v9
+  version: v9.20.2
 testImport:
 - package: github.com/stretchr/testify
   version: v1.2.2
