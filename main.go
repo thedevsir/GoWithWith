@@ -3,13 +3,12 @@ package main
 import (
 	"os"
 
-	"github.com/Gommunity/GoWithWith/database"
-	_ "github.com/Gommunity/GoWithWith/docs"
+	"github.com/Gommunity/GoWithWith/app/controller"
+	"github.com/Gommunity/GoWithWith/config/database"
+	"github.com/Gommunity/GoWithWith/config/mail"
 	"github.com/Gommunity/GoWithWith/helpers/validation"
-	"github.com/Gommunity/GoWithWith/mail"
 	"github.com/Gommunity/GoWithWith/models"
 	"github.com/Gommunity/GoWithWith/routes"
-	"github.com/Gommunity/GoWithWith/routes/handlers"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -24,7 +23,7 @@ func init() {
 		panic(":main:init: ErrorLoading.EnvFile")
 	}
 
-	handlers.InitConfig()
+	controller.InitConfig()
 	mail.Initial()
 
 	Models := map[string]mongodm.IDocumentBase{
