@@ -12,10 +12,14 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func FindUserByCredentials(username, password string) (model.User, error) {
+type userModel struct {
+	*model.User
+}
+
+func (u userModel) FindUserByCredentials(username, password string) (*userModel, error) {
 
 	getUser := database.Connection.Model(model.UserCollection)
-	user := &model.User{}
+	user := &u
 	var findStruct bson.M
 
 	if strings.Index(username, "@") > -1 {
@@ -27,20 +31,20 @@ func FindUserByCredentials(username, password string) (model.User, error) {
 	err := getUser.FindOne(findStruct).Exec(user)
 
 	if _, ok := err.(*mongodm.NotFoundError); ok {
-		return model.User{}, errors.New("Credentials are invalid")
+		return user, errors.New("Credentials are invalid")
 	} else if err != nil {
 		panic(err)
 	} else {
 		match := encrypt.CheckPasswordHash(password, user.Password)
 		if !match {
-			return model.User{}, errors.New("Credentials are invalid")
+			return user, errors.New("Credentials are invalid")
 		}
 	}
 
-	return *user, nil
+	return user, nil
 }
 
-func ChangeUserPassword(username, password string) {
+func (u userModel) ChangeUserPassword(username, password string) {
 
 	getUser := database.Connection.Model(model.UserCollection)
 	hash, _ := encrypt.HashPassword(password)
@@ -57,59 +61,59 @@ func ChangeUserPassword(username, password string) {
 	}
 }
 
-func CheckUsername(username string) (model.User, error) {
+func (u userModel) CheckUsername(username string) (*userModel, error) {
 
 	getUser := database.Connection.Model(model.UserCollection)
-	user := &model.User{}
+	user := &u
 	err := getUser.FindOne(bson.M{"username": strings.ToLower(username)}).Exec(user)
 
 	if _, ok := err.(*mongodm.NotFoundError); ok {
-		return model.User{}, nil
+		return user, nil
 	} else if err != nil {
 		panic(err)
 	} else {
 		errs := validation.Errors{}
 		errs["username"] = errors.New("The username exist")
-		return *user, errs
+		return user, errs
 	}
 }
 
-func CheckEmail(email string) (model.User, error) {
+func (u userModel) CheckEmail(email string) (*userModel, error) {
 
 	getUser := database.Connection.Model(model.UserCollection)
-	user := &model.User{}
+	user := &u
 	err := getUser.FindOne(bson.M{"email": strings.ToLower(email)}).Exec(user)
 
 	if _, ok := err.(*mongodm.NotFoundError); ok {
-		return model.User{}, nil
+		return user, nil
 	} else if err != nil {
 		panic(err)
 	} else {
 		errs := validation.Errors{}
 		errs["email"] = errors.New("The email exist")
-		return *user, errs
+		return user, errs
 	}
 }
 
-func CheckEmailVerify(email string) (model.User, error) {
+func (u userModel) CheckEmailVerify(email string) (*userModel, error) {
 
 	getUser := database.Connection.Model(model.UserCollection)
-	user := &model.User{}
+	user := &u
 	err := getUser.FindOne(bson.M{"email": strings.ToLower(email), "verifyEmail": false}).Exec(user)
 
 	if err, ok := err.(*mongodm.NotFoundError); ok {
-		return model.User{}, err
+		return user, err
 	} else if err != nil {
 		panic(err)
 	} else {
-		return model.User{}, nil
+		return user, nil
 	}
 }
 
-func CreateUser(username, password, email string) {
+func (u userModel) CreateUser(username, password, email string) {
 
 	getUser := database.Connection.Model(model.UserCollection)
-	user := &model.User{}
+	user := &u
 	getUser.New(user)
 	hash, _ := encrypt.HashPassword(password)
 
