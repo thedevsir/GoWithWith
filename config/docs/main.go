@@ -60,7 +60,7 @@ var doc = `{
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/helpers.JoiError"
+                            "$ref": "#/definitions/services.JoiError"
                         }
                     }
                 }
@@ -106,7 +106,7 @@ var doc = `{
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/helpers.JoiString"
+                            "$ref": "#/definitions/services.JoiString"
                         }
                     }
                 }
@@ -153,7 +153,7 @@ var doc = `{
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/helpers.JoiError"
+                            "$ref": "#/definitions/services.JoiError"
                         }
                     }
                 }
@@ -200,14 +200,14 @@ var doc = `{
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/helpers.JoiString"
+                            "$ref": "#/definitions/services.JoiString"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/helpers.JoiError"
+                            "$ref": "#/definitions/services.JoiError"
                         }
                     }
                 }
@@ -215,7 +215,7 @@ var doc = `{
         }
     },
     "definitions": {
-        "helpers.JoiError": {
+        "services.JoiError": {
             "type": "object",
             "properties": {
                 "Code": {
@@ -226,7 +226,7 @@ var doc = `{
                 }
             }
         },
-        "helpers.JoiString": {
+        "services.JoiString": {
             "type": "object",
             "properties": {
                 "Code": {

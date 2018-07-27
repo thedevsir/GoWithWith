@@ -50,7 +50,7 @@
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/helpers.JoiError"
+                            "$ref": "#/definitions/services.JoiError"
                         }
                     }
                 }
@@ -96,7 +96,7 @@
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/helpers.JoiString"
+                            "$ref": "#/definitions/services.JoiString"
                         }
                     }
                 }
@@ -143,7 +143,7 @@
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/helpers.JoiError"
+                            "$ref": "#/definitions/services.JoiError"
                         }
                     }
                 }
@@ -190,14 +190,14 @@
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/helpers.JoiString"
+                            "$ref": "#/definitions/services.JoiString"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/helpers.JoiError"
+                            "$ref": "#/definitions/services.JoiError"
                         }
                     }
                 }
@@ -205,7 +205,7 @@
         }
     },
     "definitions": {
-        "helpers.JoiError": {
+        "services.JoiError": {
             "type": "object",
             "properties": {
                 "Code": {
@@ -216,7 +216,7 @@
                 }
             }
         },
-        "helpers.JoiString": {
+        "services.JoiString": {
             "type": "object",
             "properties": {
                 "Code": {

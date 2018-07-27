@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/Gommunity/GoWithWith/models"
+	"github.com/Gommunity/GoWithWith/services/request"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,7 +37,7 @@ func TestSignup(t *testing.T) {
 		form.Set("username", "irani")
 		form.Set("email", "freshmanlimited@gmail.com")
 
-		c, rec := MakeReq("POST", form, true, "")
+		c, rec := request.MakeReq("POST", form, true, "")
 
 		if assert.NoError(t, Signup(c)) {
 			assert.Equal(t, http.StatusOK, rec.Code)
@@ -51,7 +52,7 @@ func TestSignup(t *testing.T) {
 		form.Set("username", "ir") // min: 3
 		form.Set("email", "wrongEmail")
 
-		c, rec := MakeReq("POST", form, true, "")
+		c, rec := request.MakeReq("POST", form, true, "")
 
 		if assert.NoError(t, Signup(c)) {
 			var errJSON JoiError

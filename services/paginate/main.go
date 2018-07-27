@@ -1,7 +1,10 @@
-package repository
+package paginate
 
 import (
 	"math"
+	"strconv"
+
+	"github.com/labstack/echo"
 )
 
 var (
@@ -63,4 +66,27 @@ func GeneratePagination(data interface{}, count, page, limit int) Pagination {
 	}
 
 	return result
+}
+
+func Settings(c echo.Context) (int, int) {
+
+	var page, limit = 1, 10
+	queryPage := c.QueryParam("page")
+	queryLimit := c.QueryParam("limit")
+
+	if queryPage != "" {
+		p, err := strconv.Atoi(queryPage)
+		if err == nil {
+			page = p
+		}
+	}
+
+	if queryLimit != "" {
+		l, err := strconv.Atoi(queryLimit)
+		if err == nil {
+			limit = l
+		}
+	}
+
+	return page, limit
 }

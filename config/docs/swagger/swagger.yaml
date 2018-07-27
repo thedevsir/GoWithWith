@@ -1,13 +1,13 @@
 basePath: /endpoint/v1
 definitions:
-  helpers.JoiError:
+  services.JoiError:
     properties:
       Code:
         type: integer
       Message:
         type: error
     type: object
-  helpers.JoiString:
+  services.JoiString:
     properties:
       Code:
         type: integer
@@ -86,7 +86,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/helpers.JoiError'
+            $ref: '#/definitions/services.JoiError'
             type: object
       security:
       - ApiKeyAuth: []
@@ -115,7 +115,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/helpers.JoiString'
+            $ref: '#/definitions/services.JoiString'
             type: object
       security:
       - ApiKeyAuth: []
@@ -149,7 +149,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/helpers.JoiError'
+            $ref: '#/definitions/services.JoiError'
             type: object
       summary: User login
       tags:
@@ -181,12 +181,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/helpers.JoiString'
+            $ref: '#/definitions/services.JoiString'
             type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/helpers.JoiError'
+            $ref: '#/definitions/services.JoiError'
             type: object
       summary: Create a account
       tags:

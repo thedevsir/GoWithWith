@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/Gommunity/GoWithWith/models"
+	"github.com/Gommunity/GoWithWith/services/auth"
+	"github.com/Gommunity/GoWithWith/services/request"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,11 +27,11 @@ func TestLogout(t *testing.T) {
 		return nil
 	}
 
-	jwt, _ := models.CreateJWToken("session", "SID", "username", "userID", []byte("secret"))
+	jwt, _ := auth.CreateJWToken("session", "SID", "username", "userID", []byte("secret"))
 
 	t.Run("DeleteCurrentSession", func(t *testing.T) {
 
-		c, rec := MakeReq("DELETE", form, false, jwt)
+		c, rec := request.MakeReq("DELETE", form, false, jwt)
 		token, _ := ParseJWT(jwt, []byte("secret"))
 		c.Set("user", token)
 
@@ -43,7 +45,7 @@ func TestLogout(t *testing.T) {
 
 	t.Run("DeleteByID", func(t *testing.T) { // Cant detect id in postData
 
-		c, rec := MakeReq("DELETE", form, true, jwt)
+		c, rec := request.MakeReq("DELETE", form, true, jwt)
 		token, _ := ParseJWT(jwt, []byte("secret"))
 		c.Set("user", token)
 

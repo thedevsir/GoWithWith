@@ -3,19 +3,12 @@ package controller
 import (
 	"os"
 
-	"github.com/Gommunity/GoWithWith/helpers/response"
+	"github.com/Gommunity/GoWithWith/app/model"
+	"github.com/Gommunity/GoWithWith/app/repository"
+	"github.com/Gommunity/GoWithWith/services/mail"
+	"github.com/Gommunity/GoWithWith/services/response"
 	"github.com/labstack/echo"
 )
-
-type SignupStruct struct {
-	Username string `json:"username" validate:"required,min=3,max=50,alphanum"`
-	Password string `json:"password validate:"required,min=3,max=50"`
-	Email    string `json:"email" validate:"required,email"`
-}
-
-type ResendEmailStruct struct {
-	Email string `json:"email" validate:"required,email"`
-}
 
 // Signup godoc
 // @Summary Create a account
@@ -26,12 +19,12 @@ type ResendEmailStruct struct {
 // @Param username formData string true "Username"
 // @Param password formData string true "Password"
 // @Param email formData string true "Email"
-// @Success 200 {object} helpers.JoiString
-// @Failure 400 {object} helpers.JoiError
+// @Success 200 {object} services.JoiString
+// @Failure 400 {object} services.JoiError
 // @Router /user/signup [post]
 func Signup(c echo.Context) (err error) {
 
-	params := new(SignupStruct)
+	params := new(model.SignupStruct)
 
 	if err := c.Bind(params); err != nil {
 		return response.Error(err.Error(), 1000)
@@ -41,26 +34,19 @@ func Signup(c echo.Context) (err error) {
 		return response.Error(err.Error(), 1001)
 	}
 
-	if _, err = ModeliCheckUsername(params.Username); err != nil {
+	if _, err = repository.CheckUsername(params.Username); err != nil {
 		return response.Error(err.Error(), 1002)
 	}
 
-	if _, err = ModeliCheckEmail(params.Email); err != nil {
+	if _, err = repository.CheckEmail(params.Email); err != nil {
 		return response.Error(err.Error(), 1003)
 	}
 
-	ModeliCreateUser(params.Username, params.Password, params.Email)
-
-	token := ModeliMakeEmailToken("verify", params.Username, params.Email, []byte(os.Getenv("JWTSigningKey")))
-	ModeliSendVerficationMail(params.Username, params.Email, token)
-
+	repository.CreateUser(params.Username, params.Password, params.Email)
+	token := mail.MakeEmailToken("verify", params.Username, params.Email, []byte(os.Getenv("JWTSigningKey")))
+	mail.SendVerficationMail(params.Username, params.Email, token)
 	return response.Created(c, "Created Successfully")
 }
-
-// func Verify(c echo.Context) (err error) {
-
-// 	// params := new()
-// }
 
 // ResendEmail godoc
 // @Summary Resend verfication email
@@ -69,12 +55,12 @@ func Signup(c echo.Context) (err error) {
 // @Accept mpfd
 // @Produce json
 // @Param email formData string true "Email"
-// @Success 200 {object} helpers.JoiString
-// @Failure 400 {object} helpers.JoiError
+// @Success 200 {object} services.JoiString
+// @Failure 400 {object} services.JoiError
 // @Router /user/signup/resend-email [post]
 func ResendEmail(c echo.Context) (err error) {
 
-	params := new(ResendEmailStruct)
+	params := new(model.ResendEmailStruct)
 
 	if err := c.Bind(params); err != nil {
 		return response.Error(err.Error(), 1000)
@@ -84,7 +70,7 @@ func ResendEmail(c echo.Context) (err error) {
 		return response.Error(err.Error(), 1001)
 	}
 
-	if _, err = ModeliCheckEmailVerify(params.Email); err != nil {
+	if _, err = repository.CheckEmailVerify(params.Email); err != nil {
 		return response.Error(err.Error(), 1004)
 	}
 

@@ -1,4 +1,4 @@
-package viewmail
+package mail
 
 import (
 	"fmt"

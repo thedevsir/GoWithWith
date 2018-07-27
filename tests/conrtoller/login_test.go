@@ -1,4 +1,4 @@
-package controller
+package tests
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/Gommunity/GoWithWith/models"
+	"github.com/Gommunity/GoWithWith/services/request"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 )
@@ -35,7 +36,7 @@ func TestLogin(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 
-		c, rec := MakeReq("POST", form, true, "")
+		c, rec := request.MakeReq("POST", form, true, "")
 
 		if assert.NoError(t, Login(c)) {
 			var res Authorization
@@ -49,7 +50,7 @@ func TestLogin(t *testing.T) {
 
 		form.Set("password", "")
 
-		c, rec := MakeReq("POST", form, true, "")
+		c, rec := request.MakeReq("POST", form, true, "")
 
 		if assert.NoError(t, Login(c)) {
 			var errJSON JoiError
@@ -77,7 +78,7 @@ func TestForgot(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 
-		c, rec := MakeReq("POST", form, true, "")
+		c, rec := request.MakeReq("POST", form, true, "")
 
 		if assert.NoError(t, Forgot(c)) {
 			assert.Equal(t, http.StatusOK, rec.Code)
@@ -105,7 +106,7 @@ func TestReset(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 
-		c, rec := MakeReq("POST", form, true, "")
+		c, rec := request.MakeReq("POST", form, true, "")
 
 		if assert.NoError(t, Reset(c)) {
 			assert.Equal(t, http.StatusOK, rec.Code)

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/Gommunity/GoWithWith/config/database"
+	"github.com/Gommunity/GoWithWith/services/encrypt"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/zebresel-com/mongodm"
@@ -39,13 +40,13 @@ func TestBcrypt(t *testing.T) {
 	password := "12345"
 
 	t.Run("HashPassword", func(t *testing.T) {
-		str, err = HashPassword(password)
+		str, err = encrypt.HashPassword(password)
 		assert.IsType(t, String, str)
 		assert.Nil(t, err)
 	})
 
 	t.Run("CheckPasswordHash", func(t *testing.T) {
-		err := CheckPasswordHash(password, str)
+		err := encrypt.CheckPasswordHash(password, str)
 		assert.True(t, err)
 	})
 }

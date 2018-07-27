@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"github.com/Gommunity/GoWithWith/helpers/response"
-	"github.com/Gommunity/GoWithWith/models"
+	"github.com/Gommunity/GoWithWith/app/repository"
+	"github.com/Gommunity/GoWithWith/services/response"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 )
@@ -16,11 +16,11 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		var SID, session = claims["sid"].(string), claims["session"].(string)
 
-		if err := models.SessionFindByCredentials(session, SID); err != nil {
+		if err := repository.SessionFindByCredentials(session, SID); err != nil {
 			return response.Error(err.Error(), 1012)
 		}
 
-		models.UpdateLastActive(SID)
+		repository.UpdateLastActive(SID)
 
 		return next(c)
 	}

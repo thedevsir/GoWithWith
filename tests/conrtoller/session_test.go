@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/Gommunity/GoWithWith/models"
+	"github.com/Gommunity/GoWithWith/services/auth"
+	"github.com/Gommunity/GoWithWith/services/request"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,11 +19,11 @@ func TestSessions(t *testing.T) {
 		return *session, nil
 	}
 
-	jwt, _ := models.CreateJWToken("token", "TID", "username", "userID", []byte("secret"))
+	jwt, _ := auth.CreateJWToken("token", "TID", "username", "userID", []byte("secret"))
 
 	t.Run("GetMySessions", func(t *testing.T) {
 
-		c, rec := MakeReq("GET", make(url.Values), false, jwt)
+		c, rec := request.MakeReq("GET", make(url.Values), false, jwt)
 		token, _ := ParseJWT(jwt, []byte("secret"))
 		c.Set("user", token)
 

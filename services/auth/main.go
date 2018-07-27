@@ -1,12 +1,14 @@
-package repository
+package auth
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Gommunity/GoWithWith/config/database"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/zebresel-com/mongodm"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -22,6 +24,19 @@ type AbuseDetected struct {
 	MaxIP            string
 	MaxIPAndUsername string
 }
+
+type (
+	JWTUserEmbed struct {
+		ID       string `json:"userId"`
+		Username string `json:"username"`
+	}
+	JWTClaims struct {
+		Session string `json:"session"`
+		SID     string `json:"sid"`
+		JWTUserEmbed
+		jwt.StandardClaims
+	}
+)
 
 func (Config *AbuseDetected) Check(ip, username string) error {
 
@@ -75,4 +90,47 @@ func AttemptCreate(ip, username string) error {
 	}
 
 	return nil
+}
+
+func ParseJWT(token string, secret []byte) (*jwt.Token, error) {
+
+	var err error
+	token = strings.Replace(token, "Bearer ", "", 1)
+	tokenParsed := new(jwt.Token)
+	tokenParsed, err = jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("There was an error")
+		}
+		return secret, nil
+	})
+
+	if err == nil && tokenParsed.Valid {
+		return tokenParsed, nil
+	}
+
+	return &jwt.Token{}, err
+}
+
+func CreateJWToken(session, SID, username, userID string, signingKey []byte) string {
+
+	var SignedToken string
+	var err error
+
+	claims := JWTClaims{
+		session,
+		SID,
+		JWTUserEmbed{
+			userID,
+			username,
+		},
+		jwt.StandardClaims{},
+	}
+
+	tokenJWT := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	if SignedToken, err = tokenJWT.SignedString(signingKey); err != nil {
+		panic(err)
+	}
+
+	SignedToken = "Bearer " + SignedToken
+	return SignedToken
 }

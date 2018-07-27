@@ -5,28 +5,13 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 
+	"github.com/Gommunity/GoWithWith/app/model"
 	"github.com/Gommunity/GoWithWith/app/repository"
-	"github.com/Gommunity/GoWithWith/helpers/response"
+	"github.com/Gommunity/GoWithWith/config/auth"
+	"github.com/Gommunity/GoWithWith/services/mail"
+	"github.com/Gommunity/GoWithWith/services/response"
 	"github.com/labstack/echo"
 )
-
-type LoginStruct struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
-}
-
-type Authorization struct {
-	Authorization string `json:"authorization"`
-}
-
-type ForgotStruct struct {
-	Email string `json:"email" validate:"required,email"`
-}
-
-type ResetStruct struct {
-	Token    string `json:"token" validate:"required"`
-	Password string `json:"password" validate:"required,min=3,max=50"`
-}
 
 // Login godoc
 // @Summary User login
@@ -37,7 +22,7 @@ type ResetStruct struct {
 // @Param username formData string true "Username"
 // @Param password formData string true "Password"
 // @Success 200 {object} Authorization
-// @Failure 400 {object} helpers.JoiError
+// @Failure 400 {object} services.JoiError
 // @Router /user/login [post]
 func Login(c echo.Context) (err error) {
 
@@ -47,7 +32,7 @@ func Login(c echo.Context) (err error) {
 	ip := c.RealIP()
 	userAgent := c.Request().Header.Get("User-Agent")
 
-	params := new(LoginStruct)
+	params := new(model.LoginStruct)
 
 	if err := c.Bind(params); err != nil {
 		return response.Error(err.Error(), 1000)
@@ -57,22 +42,22 @@ func Login(c echo.Context) (err error) {
 		return response.Error(err.Error(), 1001)
 	}
 
-	if err = ModeliAbuseDetectedCheck(ip, params.Username); err != nil {
+	if err = auth.AbuseDetected.Check(ip, params.Username); err != nil {
 		return response.Error(err.Error(), 1007)
 	}
 
-	if user, err = ModeliFindUserByCredentials(params.Username, params.Password); err != nil {
+	if user, err = repository.FindUserByCredentials(params.Username, params.Password); err != nil {
 		repository.AttemptCreate(ip, params.Username)
 		return response.Error(err.Error(), 1008)
 	}
 
 	userID = user.GetId().Hex()
 
-	SID, session = ModeliCreateSession(userID, ip, userAgent)
+	SID, session = repository.CreateSession(userID, ip, userAgent)
 
-	tokenJWT = ModeliCreateJWToken(session, SID, user.Username, userID, []byte(os.Getenv("JWTSigningKey")))
+	tokenJWT = auth.CreateJWToken(session, SID, user.Username, userID, []byte(os.Getenv("JWTSigningKey")))
 
-	auth := &Authorization{
+	auth := &model.Authorization{
 		Authorization: tokenJWT,
 	}
 	return response.Data(c, auth)
@@ -85,15 +70,15 @@ func Login(c echo.Context) (err error) {
 // @Accept  mpfd
 // @Produce  json
 // @Param email formData string true "Email"
-// @Success 200 {object} helpers.SayOk
-// @Failure 400 {object} helpers.JoiError
+// @Success 200 {object} services.SayOk
+// @Failure 400 {object} services.JoiError
 // @Router /user/login/forgot [post]
 func Forgot(c echo.Context) (err error) {
 
 	var token string
 	var user repository.User
 
-	params := new(ForgotStruct)
+	params := new(model.ForgotStruct)
 
 	if err := c.Bind(params); err != nil {
 		return response.Error(err.Error(), 1000)
@@ -103,11 +88,11 @@ func Forgot(c echo.Context) (err error) {
 		return response.Error(err.Error(), 1001)
 	}
 
-	if user, err = ModeliCheckEmail(params.Email); err != nil {
+	if user, err = repository.CheckEmail(params.Email); err != nil {
 
-		token = ModeliMakeEmailToken("reset", user.Username, user.Email, []byte(os.Getenv("JWTSigningKey")))
+		token = mail.MakeEmailToken("reset", user.Username, user.Email, []byte(os.Getenv("JWTSigningKey")))
 
-		ModeliSendResetMail(user.Username, user.Email, token)
+		mail.SendResetMail(user.Username, user.Email, token)
 
 		return response.Ok(c, "Success")
 	}
@@ -122,14 +107,14 @@ func Forgot(c echo.Context) (err error) {
 // @Produce  json
 // @Param token formData string true "Token"
 // @Param password formData string true "Password"
-// @Success 200 {object} helpers.SayOk
-// @Failure 400 {object} helpers.JoiError
+// @Success 200 {object} services.SayOk
+// @Failure 400 {object} services.JoiError
 // @Router /user/login/reset [post]
 func Reset(c echo.Context) (err error) {
 
 	var data *jwt.Token
 
-	params := new(ResetStruct)
+	params := new(model.ResetStruct)
 
 	if err := c.Bind(params); err != nil {
 		return response.Error(err.Error(), 1000)
@@ -139,7 +124,7 @@ func Reset(c echo.Context) (err error) {
 		return response.Error(err.Error(), 1001)
 	}
 
-	if data, err = ModeliParseJWT(params.Token, []byte(os.Getenv("JWTSigningKey"))); err != nil {
+	if data, err = auth.ParseJWT(params.Token, []byte(os.Getenv("JWTSigningKey"))); err != nil {
 		return response.Error(err.Error(), 1010)
 	}
 
@@ -149,7 +134,7 @@ func Reset(c echo.Context) (err error) {
 		return response.Error("wrong action type", 1011)
 	}
 
-	ModeliChangeUserPassword(claims["Username"].(string), params.Password)
+	repository.ChangeUserPassword(claims["Username"].(string), params.Password)
 
 	return response.Ok(c, "Success")
 }
