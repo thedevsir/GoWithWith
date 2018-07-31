@@ -3,14 +3,14 @@ package main
 import (
 	"os"
 
-	"github.com/Gommunity/GoWithWith/database"
+	"github.com/Gommunity/GoWithWith/app/model"
+	"github.com/Gommunity/GoWithWith/config/database"
+
+	"github.com/Gommunity/GoWithWith/config/mail"
 	_ "github.com/Gommunity/GoWithWith/docs"
-	"github.com/Gommunity/GoWithWith/helpers/validation"
-	"github.com/Gommunity/GoWithWith/mail"
-	"github.com/Gommunity/GoWithWith/models"
 	"github.com/Gommunity/GoWithWith/routes"
-	"github.com/Gommunity/GoWithWith/routes/handlers"
-	"github.com/joho/godotenv"
+	"github.com/Gommunity/GoWithWith/services/utility"
+	"github.com/Gommunity/GoWithWith/services/validation"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/zebresel-com/mongodm"
@@ -19,20 +19,23 @@ import (
 
 func init() {
 
-	err := godotenv.Load()
-	if err != nil {
-		panic(":main:init: ErrorLoading.EnvFile")
-	}
+	utility.LoadEnvironmentVariables(".env")
 
-	handlers.InitConfig()
-	mail.Initial()
-
-	Models := map[string]mongodm.IDocumentBase{
-		"authAttempts": &models.AuthAttempt{},
-		"sessions":     &models.Session{},
-		"users":        &models.User{},
+	db := &database.Composer{
+		Locals:   "resource/locals/locals.json",
+		Addrs:    []string{os.Getenv("DBAddrs")},
+		Database: os.Getenv("DBName"),
+		Username: os.Getenv("DBUsername"),
+		Password: os.Getenv("DBPassword"),
+		Source:   os.Getenv("DBSource"),
 	}
-	database.Initial(Models, false)
+	db.Shoot(map[string]mongodm.IDocumentBase{
+		"authAttempts": &model.AuthAttempt{},
+		"sessions":     &model.Session{},
+		"users":        &model.User{},
+	})
+
+	mail.Composer()
 }
 
 // @title GoWithWith
@@ -46,7 +49,7 @@ func init() {
 // @license.url https://opensource.org/licenses/MIT
 
 // @host localhost:3500
-// @BasePath /endpoint/v1
+// @BasePath /endpoint
 
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header

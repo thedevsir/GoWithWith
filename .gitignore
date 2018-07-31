@@ -1,7 +1,6 @@
 .env
 .idea
 .vscode
-.gometalinter
 vendor
 src
 glide.lock

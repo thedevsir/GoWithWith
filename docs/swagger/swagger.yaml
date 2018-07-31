@@ -1,59 +1,10 @@
-basePath: /endpoint/v1
+basePath: /endpoint
 definitions:
-  helpers.JoiError:
+  response.Message:
     properties:
       Code:
         type: integer
       Message:
-        type: error
-    type: object
-  helpers.JoiString:
-    properties:
-      Code:
-        type: integer
-      Message:
-        type: string
-    type: object
-  models.Pagination:
-    properties:
-      data:
-        type: object
-      items:
-        $ref: '#/definitions/models.PaginationItems'
-        type: object
-      pages:
-        $ref: '#/definitions/models.PaginationPages'
-        type: object
-    type: object
-  models.PaginationItems:
-    properties:
-      begin:
-        type: integer
-      end:
-        type: integer
-      limit:
-        type: integer
-      total:
-        type: integer
-    type: object
-  models.PaginationPages:
-    properties:
-      current:
-        type: integer
-      hasNext:
-        type: boolean
-      hasPrev:
-        type: boolean
-      next:
-        type: integer
-      prev:
-        type: integer
-      total:
-        type: integer
-    type: object
-  structs.Authorization:
-    properties:
-      authorization:
         type: string
     type: object
 host: localhost:3500
@@ -68,127 +19,215 @@ info:
   title: GoWithWith
   version: "1.0"
 paths:
-  /user/auth/logout:
-    delete:
-      description: Delete current session or delete special session with id
-      parameters:
-      - description: Session ID
-        in: formData
-        name: id
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/helpers.JoiError'
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Logout user
-      tags:
-      - users
-  /user/auth/sessions:
-    get:
-      description: Get all user sessions
-      parameters:
-      - description: Page
-        in: query
-        name: page
-        type: number
-      - description: Limit
-        in: query
-        name: limit
-        type: number
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/helpers.JoiString'
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Get user sessions
-      tags:
-      - users
-  /user/login:
+  /user/v1/signin:
     post:
       consumes:
-      - multipart/form-data
-      description: Login and get jwt session
+      - application/json
       parameters:
       - description: Username
-        in: formData
+        in: body
         name: username
         required: true
-        type: string
+        schema:
+          type: object
       - description: Password
-        in: formData
+        in: body
         name: password
         required: true
-        type: string
+        schema:
+          type: object
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            $ref: '#/definitions/structs.Authorization'
+            $ref: '#/definitions/response.Message'
             type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/helpers.JoiError'
+            $ref: '#/definitions/response.Message'
             type: object
-      summary: User login
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+      summary: User signin
       tags:
       - users
-  /user/signup:
+  /user/v1/signin/forgot:
     post:
       consumes:
-      - multipart/form-data
-      description: Create by multipart/form-data
+      - application/json
       parameters:
-      - description: Username
-        in: formData
-        name: username
-        required: true
-        type: string
-      - description: Password
-        in: formData
-        name: password
-        required: true
-        type: string
       - description: Email
-        in: formData
+        in: body
         name: email
         required: true
-        type: string
+        schema:
+          type: object
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/helpers.JoiString'
+            $ref: '#/definitions/response.Message'
             type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/helpers.JoiError'
+            $ref: '#/definitions/response.Message'
             type: object
-      summary: Create a account
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+      summary: Forgot password
+      tags:
+      - users
+  /user/v1/signin/reset:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Token
+        in: body
+        name: token
+        required: true
+        schema:
+          type: object
+      - description: Password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+      summary: Reset password
+      tags:
+      - users
+  /user/v1/signup:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Username
+        in: body
+        name: username
+        required: true
+        schema:
+          type: object
+      - description: Password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: object
+      - description: Email
+        in: body
+        name: email
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+      summary: Create an account
+      tags:
+      - users
+  /user/v1/signup/resend:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email
+        in: body
+        name: email
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+      summary: Resend email verfication
+      tags:
+      - users
+  /user/v1/signup/verification:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Token
+        in: body
+        name: token
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Message'
+            type: object
+      summary: Activate user account
       tags:
       - users
 securityDefinitions:
