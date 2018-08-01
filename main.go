@@ -3,7 +3,10 @@ package main
 import (
 	"os"
 
-	"github.com/Gommunity/GoWithWith/app/model"
+	mAdmin "github.com/Gommunity/GoWithWith/app/model/admin"
+	mAuthAttempt "github.com/Gommunity/GoWithWith/app/model/authAttempt"
+	mSession "github.com/Gommunity/GoWithWith/app/model/session"
+	mUser "github.com/Gommunity/GoWithWith/app/model/user"
 	"github.com/Gommunity/GoWithWith/config/database"
 
 	"github.com/Gommunity/GoWithWith/config/mail"
@@ -30,9 +33,10 @@ func init() {
 		Source:   os.Getenv("DBSource"),
 	}
 	db.Shoot(map[string]mongodm.IDocumentBase{
-		"authAttempts": &model.AuthAttempt{},
-		"sessions":     &model.Session{},
-		"users":        &model.User{},
+		"authAttempts": &mAuthAttempt.AuthAttempt{},
+		"sessions":     &mSession.Session{},
+		"users":        &mUser.User{},
+		"admin":        &mAdmin.Admin{},
 	})
 
 	mail.Composer()
@@ -57,7 +61,7 @@ func init() {
 
 func main() {
 
-	Run := routes.Initial()
+	Run := routes.Composer()
 	Run.Use(middleware.Logger())
 	Run.Use(middleware.Recover())
 	Run.Use(middleware.BodyDump(func(c echo.Context, reqBody, resBody []byte) {}))

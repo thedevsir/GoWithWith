@@ -1,4 +1,4 @@
-package model
+package authAttempt
 
 import (
 	"testing"
@@ -14,9 +14,9 @@ var authAttemptCollection *mongodm.Model
 
 func authAttemptBeforeTest() {
 
-	utility.LoadEnvironmentVariables("../../.env")
+	utility.LoadEnvironmentVariables("../../../.env")
 
-	db := test.DBComposer("../../resource/locals/locals.json")
+	db := test.DBComposer("../../../resource/locals/locals.json")
 	db.Shoot(map[string]mongodm.IDocumentBase{
 		"authAttempts": &AuthAttempt{},
 	})

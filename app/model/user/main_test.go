@@ -1,4 +1,4 @@
-package model
+package user
 
 import (
 	"testing"
@@ -14,9 +14,9 @@ var userCollection *mongodm.Model
 
 func userBeforeTest() {
 
-	utility.LoadEnvironmentVariables("../../.env")
+	utility.LoadEnvironmentVariables("../../../.env")
 
-	db := test.DBComposer("../../resource/locals/locals.json")
+	db := test.DBComposer("../../../resource/locals/locals.json")
 	db.Shoot(map[string]mongodm.IDocumentBase{
 		"users": &User{},
 	})

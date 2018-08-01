@@ -1,11 +1,11 @@
-package controller
+package session
 
 import (
 	"encoding/json"
 	"net/http"
 	"testing"
 
-	"github.com/Gommunity/GoWithWith/app/model"
+	mSession "github.com/Gommunity/GoWithWith/app/model/session"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/Gommunity/GoWithWith/config/database"
@@ -21,14 +21,14 @@ var sessionCollection *mongodm.Model
 
 func sessionBeforeTest() {
 
-	utility.LoadEnvironmentVariables("../../.env")
+	utility.LoadEnvironmentVariables("../../../.env")
 
-	db := test.DBComposer("../../resource/locals/locals.json")
+	db := test.DBComposer("../../../resource/locals/locals.json")
 	db.Shoot(map[string]mongodm.IDocumentBase{
-		"sessions": &model.Session{},
+		"sessions": &mSession.Session{},
 	})
 
-	sessionCollection = database.Connection.Model(model.SessionCollection)
+	sessionCollection = database.Connection.Model(mSession.SessionCollection)
 	sessionCollection.RemoveAll(nil)
 }
 

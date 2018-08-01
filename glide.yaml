@@ -31,6 +31,10 @@ import:
   version: v9.20.2
 - package: gopkg.in/gomail.v2
   version: ^2.0.0
+- package: github.com/spf13/cobra
+  version: ^0.0.3
+  subpackages:
+  - cobra
 testImport:
 - package: github.com/stretchr/testify
   version: v1.2.2

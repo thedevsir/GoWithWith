@@ -1,16 +1,23 @@
-package controller
+package user
 
 import (
 	"net/http"
 	"os"
 
-	"github.com/Gommunity/GoWithWith/app/model"
+	mAuthAttempt "github.com/Gommunity/GoWithWith/app/model/authAttempt"
+	mSession "github.com/Gommunity/GoWithWith/app/model/session"
+	mUser "github.com/Gommunity/GoWithWith/app/model/user"
 	"github.com/Gommunity/GoWithWith/services/auth"
 	j "github.com/Gommunity/GoWithWith/services/jwt"
 	"github.com/Gommunity/GoWithWith/services/mail"
 	"github.com/Gommunity/GoWithWith/services/response"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
+)
+
+var (
+	_SendVerficationMail = mail.SendVerficationMail
+	_SendResetMail       = mail.SendResetMail
 )
 
 type (
@@ -34,6 +41,9 @@ type (
 	}
 	ResetRoute struct {
 		Token    string `json:"token" validate:"required"`
+		Password string `json:"password" validate:"required,min=8,max=50"`
+	}
+	PasswordRoute struct {
 		Password string `json:"password" validate:"required,min=8,max=50"`
 	}
 )
@@ -64,7 +74,7 @@ func Signup(c echo.Context) (err error) {
 		return r.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	userModel := &model.User{
+	userModel := &mUser.User{
 		Username: params.Username,
 		Password: params.Password,
 		Email:    params.Email,
@@ -110,11 +120,11 @@ func Resend(c echo.Context) (err error) {
 		return r.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	userModel := &model.User{
+	userModel := &mUser.User{
 		Email: params.Email,
 	}
 
-	var user model.User
+	var user mUser.User
 	if user, err = userModel.CheckEmail(userModel.Email); err != nil {
 
 		if user.VerifyEmail != true {
@@ -162,7 +172,7 @@ func Verification(c echo.Context) (err error) {
 		return r.JSON(http.StatusBadRequest, "Wrong Action")
 	}
 
-	user := &model.User{
+	user := &mUser.User{
 		Email: claims["Email"].(string),
 	}
 	user.Activation()
@@ -199,17 +209,17 @@ func Signin(c echo.Context) (err error) {
 		return r.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	userModel := &model.User{
+	userModel := &mUser.User{
 		Username: params.Username,
 		Password: params.Password,
 	}
 
-	userAttempt := &model.AuthAttempt{
+	userAttempt := &mAuthAttempt.AuthAttempt{
 		IP:       ip,
 		Username: userModel.Username,
 	}
 
-	userAbuse := &model.AbuseDetected{
+	userAbuse := &mAuthAttempt.AbuseDetected{
 		MaxIP:            os.Getenv("AbuseDetectedForIp"),
 		MaxIPAndUsername: os.Getenv("AbuseDetectedForIpUsername"),
 	}
@@ -218,7 +228,7 @@ func Signin(c echo.Context) (err error) {
 		return r.JSON(http.StatusTooManyRequests, err.Error())
 	}
 
-	var user model.User
+	var user mUser.User
 	if user, err = userModel.FindUserByCredentials(); err != nil {
 		userAttempt.Create()
 		return r.JSON(http.StatusNotFound, err.Error())
@@ -226,7 +236,7 @@ func Signin(c echo.Context) (err error) {
 
 	UserID := user.GetId().Hex()
 
-	session := &model.Session{
+	session := &mSession.Session{
 		IP:        ip,
 		UserID:    UserID,
 		UserAgent: userAgent,
@@ -269,11 +279,11 @@ func Forgot(c echo.Context) (err error) {
 		return r.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	userModel := &model.User{
+	userModel := &mUser.User{
 		Email: params.Email,
 	}
 
-	var user model.User
+	var user mUser.User
 	if user, err = userModel.CheckEmail(userModel.Email); err != nil {
 
 		token := mail.MakeTokenForEmails("reset", user.Username, params.Email, []byte(os.Getenv("JWTSigningKey")))
@@ -318,8 +328,43 @@ func Reset(c echo.Context) (err error) {
 		return r.JSON(http.StatusBadRequest, "Wrong Action")
 	}
 
-	user := &model.User{
+	user := &mUser.User{
 		Email:    claims["Email"].(string),
+		Password: params.Password,
+	}
+	user.ChangePassword()
+
+	return r.JSON(http.StatusOK, "Success")
+}
+
+// Password godoc
+// @Summary Change password
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param password body string true "Password"
+// @Success 200 {object} response.Message
+// @Failure 400 {object} response.Message
+// @Failure 500 {object} response.Message
+// @Router /user/v1/auth/password [put]
+func Password(c echo.Context) (err error) {
+
+	r := response.Composer{c}
+	params := new(PasswordRoute)
+
+	if err := c.Bind(params); err != nil {
+		return r.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	if err := c.Validate(params); err != nil {
+		return r.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	data := c.Get("user").(*jwt.Token)
+	claims := data.Claims.(jwt.MapClaims)
+
+	user := &mUser.User{
+		Username: claims["userId"].(string),
 		Password: params.Password,
 	}
 	user.ChangePassword()

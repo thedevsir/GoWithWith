@@ -1,4 +1,4 @@
-package model
+package user
 
 import (
 	"errors"
@@ -63,7 +63,12 @@ func (u User) ChangePassword() {
 		},
 	}
 
-	err := userModel.Update(bson.M{"email": strings.ToLower(u.Email)}, update)
+	var err error
+	if u.Email != "" {
+		err = userModel.Update(bson.M{"email": strings.ToLower(u.Email)}, update)
+	} else {
+		err = userModel.UpdateId(bson.ObjectIdHex(u.Username), update)
+	}
 
 	if err != nil {
 		panic(err)

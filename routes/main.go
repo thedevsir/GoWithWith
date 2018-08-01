@@ -3,32 +3,34 @@ package routes
 import (
 	"os"
 
-	c "github.com/Gommunity/GoWithWith/app/controller"
+	cs "github.com/Gommunity/GoWithWith/app/controller/session"
+	cu "github.com/Gommunity/GoWithWith/app/controller/user"
 	"github.com/Gommunity/GoWithWith/middleware/auth"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/swaggo/echo-swagger"
 )
 
-func Initial() *echo.Echo {
+func Composer() *echo.Echo {
 
 	Route := echo.New()
 	endpoints := Route.Group("/endpoint")
 	{
 		User := endpoints.Group("/user/v1")
 		{
-			User.POST("/signup", c.Signup)
-			User.POST("/signup/resend", c.Resend)
-			User.POST("/signup/verification", c.Verification)
-			User.POST("/signin", c.Signin)
-			User.POST("/signin/forgot", c.Forgot)
-			User.PUT("/signin/reset", c.Reset)
+			User.POST("/signup", cu.Signup)
+			User.POST("/signup/resend", cu.Resend)
+			User.POST("/signup/verification", cu.Verification)
+			User.POST("/signin", cu.Signin)
+			User.POST("/signin/forgot", cu.Forgot)
+			User.PUT("/signin/reset", cu.Reset)
 			{
 				Auth := User.Group("/auth")
 				Auth.Use(middleware.JWT([]byte(os.Getenv("JWTSigningKey"))))
 				Auth.Use(auth.Middleware)
-				Auth.GET("/sessions", c.Sessions)
-				Auth.DELETE("/logout", c.Logout)
+				Auth.PUT("/password", cu.Password)
+				Auth.GET("/sessions", cs.Sessions)
+				Auth.DELETE("/logout", cs.Logout)
 			}
 		}
 	}

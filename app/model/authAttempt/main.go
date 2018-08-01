@@ -1,4 +1,4 @@
-package model
+package authAttempt
 
 import (
 	"errors"
@@ -29,7 +29,7 @@ type (
 func (a *AbuseDetected) Check(ip, username string) error {
 
 	anHourLater := time.Now().Add(-1 * time.Hour)
-	authAttemptModel := database.Connection.Model("AuthAttempt")
+	authAttemptModel := database.Connection.Model(AuthAttemptCollection)
 
 	numIP, _ := authAttemptModel.Find(
 		bson.M{
@@ -64,7 +64,7 @@ func (a *AbuseDetected) Check(ip, username string) error {
 
 func (a *AuthAttempt) Create() error {
 
-	authAttemptModel := database.Connection.Model("AuthAttempt")
+	authAttemptModel := database.Connection.Model(AuthAttemptCollection)
 	attempt := &AuthAttempt{}
 	authAttemptModel.New(attempt)
 

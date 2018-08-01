@@ -1,9 +1,9 @@
-package controller
+package session
 
 import (
 	"net/http"
 
-	"github.com/Gommunity/GoWithWith/app/model"
+	mSession "github.com/Gommunity/GoWithWith/app/model/session"
 	"github.com/Gommunity/GoWithWith/services/paginate"
 	"github.com/Gommunity/GoWithWith/services/response"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -19,7 +19,7 @@ type (
 // Sessions godoc
 // @Summary Get user sessions
 // @Tags session
-// @Accept query
+// @Accept json
 // @Produce json
 // @Param page query number false "Page"
 // @Param limit query number false "Limit"
@@ -39,7 +39,7 @@ func Sessions(c echo.Context) error {
 	userID := claims["userId"].(string)
 
 	page, limit := paginate.HandleQueries(c)
-	if sessions, err = model.GetUserSessions(userID, page, limit); err != nil {
+	if sessions, err = mSession.GetUserSessions(userID, page, limit); err != nil {
 		return r.JSON(http.StatusNotFound, err.Error())
 	}
 
@@ -59,7 +59,7 @@ func Sessions(c echo.Context) error {
 // @Router /user/auth/logout [delete]
 func Logout(c echo.Context) error {
 
-	var session model.Session
+	var session mSession.Session
 
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
@@ -73,7 +73,7 @@ func Logout(c echo.Context) error {
 	}
 
 	if err := c.Validate(params); err == nil {
-		if session, err = model.SessionFindByID(params.ID); err != nil {
+		if session, err = mSession.SessionFindByID(params.ID); err != nil {
 			return r.JSON(http.StatusNotFound, err.Error())
 		}
 		if session.UserID == userID {
@@ -81,7 +81,7 @@ func Logout(c echo.Context) error {
 		}
 	}
 
-	model.DeleteSession(SID)
+	mSession.DeleteSession(SID)
 
 	return r.JSON(http.StatusOK, "Success")
 }

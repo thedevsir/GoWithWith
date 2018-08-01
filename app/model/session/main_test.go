@@ -1,4 +1,4 @@
-package model
+package session
 
 import (
 	"testing"
@@ -15,9 +15,9 @@ var sessionCollection *mongodm.Model
 
 func sessionBeforeTest() {
 
-	utility.LoadEnvironmentVariables("../../.env")
+	utility.LoadEnvironmentVariables("../../../.env")
 
-	db := test.DBComposer("../../resource/locals/locals.json")
+	db := test.DBComposer("../../../resource/locals/locals.json")
 	db.Shoot(map[string]mongodm.IDocumentBase{
 		"sessions": &Session{},
 	})

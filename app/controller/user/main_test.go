@@ -1,4 +1,4 @@
-package controller
+package user
 
 import (
 	"encoding/json"
@@ -7,7 +7,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Gommunity/GoWithWith/app/model"
+	mAuthAttempt "github.com/Gommunity/GoWithWith/app/model/authAttempt"
+	mSession "github.com/Gommunity/GoWithWith/app/model/session"
+	mUser "github.com/Gommunity/GoWithWith/app/model/user"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 
@@ -23,16 +25,16 @@ var userCollection *mongodm.Model
 
 func userBeforeTest() {
 
-	utility.LoadEnvironmentVariables("../../.env")
+	utility.LoadEnvironmentVariables("../../../.env")
 
-	db := test.DBComposer("../../resource/locals/locals.json")
+	db := test.DBComposer("../../../resource/locals/locals.json")
 	db.Shoot(map[string]mongodm.IDocumentBase{
-		"authAttempts": &model.AuthAttempt{},
-		"sessions":     &model.Session{},
-		"users":        &model.User{},
+		"authAttempts": &mAuthAttempt.AuthAttempt{},
+		"sessions":     &mSession.Session{},
+		"users":        &mUser.User{},
 	})
 
-	userCollection = database.Connection.Model(model.UserCollection)
+	userCollection = database.Connection.Model(mUser.UserCollection)
 	userCollection.RemoveAll(nil)
 }
 
@@ -48,7 +50,7 @@ func TestSignup(t *testing.T) {
 	_SendVerficationMail = func(username, email, token string) {}
 
 	// Create user
-	userModel := &model.User{
+	userModel := &mUser.User{
 		Username: "Amir",
 		Password: "12345678",
 		Email:    "live@forumX.com",
@@ -124,7 +126,7 @@ func TestResend(t *testing.T) {
 	_SendVerficationMail = func(username, email, token string) {}
 
 	// Create user
-	userModel := &model.User{
+	userModel := &mUser.User{
 		Username: "Amir",
 		Password: "12345678",
 		Email:    "live@forumX.com",
@@ -199,7 +201,7 @@ func TestVerification(t *testing.T) {
 	userBeforeTest()
 
 	// Create user
-	userModel := &model.User{
+	userModel := &mUser.User{
 		Username: "Amir",
 		Password: "12345678",
 		Email:    "live@forumX.com",
@@ -262,7 +264,7 @@ func TestSignin(t *testing.T) {
 	userBeforeTest()
 
 	// Create user
-	userModel := &model.User{
+	userModel := &mUser.User{
 		Username: "Amir",
 		Password: "12345678",
 		Email:    "live@forumX.com",
@@ -319,7 +321,7 @@ func TestForgot(t *testing.T) {
 	userBeforeTest()
 
 	// Create user
-	userModel := &model.User{
+	userModel := &mUser.User{
 		Username: "Amir",
 		Password: "12345678",
 		Email:    "live@forumX.com",
@@ -380,7 +382,7 @@ func TestReset(t *testing.T) {
 	userBeforeTest()
 
 	// Create user
-	userModel := &model.User{
+	userModel := &mUser.User{
 		Username: "Amir",
 		Password: "12345678",
 		Email:    "live@forumX.com",

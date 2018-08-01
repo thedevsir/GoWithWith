@@ -3,7 +3,7 @@ package auth
 import (
 	"net/http"
 
-	"github.com/Gommunity/GoWithWith/app/model"
+	ms "github.com/Gommunity/GoWithWith/app/model/session"
 	"github.com/Gommunity/GoWithWith/services/response"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
@@ -19,11 +19,11 @@ func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		var SID, session = claims["sid"].(string), claims["session"].(string)
 
-		if err := model.SessionFindByCredentials(session, SID); err != nil {
+		if err := ms.SessionFindByCredentials(session, SID); err != nil {
 			return r.JSON(http.StatusBadRequest, err.Error())
 		}
 
-		model.SessionUpdateLastActivity(SID)
+		ms.SessionUpdateLastActivity(SID)
 
 		return next(c)
 	}
